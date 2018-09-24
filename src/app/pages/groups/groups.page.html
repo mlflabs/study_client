@@ -1,0 +1,55 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>GroupsGroups</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+
+    <ion-list>
+        <ion-item *ngFor="let item of items">
+            <strong>{{item.content}}</strong>
+          <div class="item-color">
+           -- {{item.color}}
+          </div>
+          <div class="item-delete" slot="end">
+            <ion-button (click)="removeItem(item)" shape="round" color="danger" fill="outline">Remove</ion-button>
+          </div>
+        </ion-item>
+    </ion-list>
+
+    <form (ngSubmit)="onSubmit()" #form="ngForm">
+        <ion-item>
+            <ion-input  id="content"
+                        name="content"
+                        #content="ngModel"
+                        [(ngModel)]="item.content" 
+                        type="text" 
+                        required
+                        placeholder="Title - Required"></ion-input>
+            <ion-label position="stacked" *ngIf="!content.valid && !content.pristine" color="danger">
+                Title is required
+            </ion-label>
+        </ion-item>
+
+        <ion-item>
+            <ion-input  id="color"
+                        name="color"
+                        #color="ngModel"
+                        [(ngModel)]="item.color" 
+                        type="text" 
+                        placeholder="Color"></ion-input>
+        </ion-item>
+      <div padding text-center>
+        <ion-spinner slot="middle" 
+          name="dots" 
+          color="primary" 
+          *ngIf="isLoading" ></ion-spinner>
+        <ion-button type="submit" 
+                    size="large" 
+                    [disabled]="!form.valid" 
+                    expand="block">Save</ion-button>
+      </div>
+    </form>
+  
+</ion-content>
