@@ -13,6 +13,8 @@ import { AppRoutingModule } from './app-routing.module';
 import { IonicStorageModule } from '@ionic/storage';
 import { AuthService } from './services/auth.service';
 import { AuthGuardService } from './services/auth-guard.service';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [AppComponent],
@@ -22,7 +24,8 @@ import { AuthGuardService } from './services/auth-guard.service';
     IonicModule.forRoot(),
     AppRoutingModule,
     FormsModule,
-    IonicStorageModule.forRoot()
+    IonicStorageModule.forRoot(),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [
     StatusBar,

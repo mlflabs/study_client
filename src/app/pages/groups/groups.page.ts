@@ -12,6 +12,7 @@ export class GroupsPage implements OnInit {
 
   public item: GroupItem = new GroupItem();
   public items = [];
+  public isLoading;
   public subscription: any;
 
 
