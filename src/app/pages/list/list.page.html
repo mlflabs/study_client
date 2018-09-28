@@ -39,101 +39,195 @@
             </ion-card-content>
           </ion-card>
     </ion-item>
+    <ion-grid>
+        <ion-row>
+          <ion-col>
+              <ion-card>
+                <ion-card-header>
+                  <ion-button (click)="redraw_graph([])">Clear</ion-button>
+                  <ion-button (click)="redraw_graph(graph_nodes, true)">Fit</ion-button>
+                  <ion-button (click)="addNodeConnection()">Add Connection</ion-button>
+                  <ion-button (click)="graphNodeEdit()" *ngIf="selectedGraphItem">Edit</ion-button>
+                  <ion-button (click)="graphNodeRemoveFromGraph()" *ngIf="selectedGraphItem">Remove from Graph</ion-button>
+                  <ion-button (click)="graphNodeDelete()" *ngIf="selectedGraphItem">Permenately Delete</ion-button>
+                </ion-card-header>
+                <ion-card-content>
+                  <div id="graph" #graph ></div>
+                </ion-card-content>
+              </ion-card>
+          </ion-col>
+          <ion-col>
+              <ion-item>
+                  <ion-card>
+                      <ion-card-header>
+                        <ion-card-subtitle>Add Item to Graph</ion-card-subtitle>
+                      </ion-card-header>
+                        <ion-card-content>
+                            <ion-item>
+                                <ion-input  id="search"
+                                            [(ngModel)]="search"
+                                            debounce="300"
+                                            clearInput="true"
+                                            type="text" 
+                                            (ionChange)="onSearchChange()"
+                                            placeholder="Search"
+                                            ></ion-input>
+                            </ion-item>
+            
+                            <ion-list>
+                                <ion-item (click)="searchItemSelected(item)" *ngFor="let item of searchItems">
+                                  {{item.content}}
+                                </ion-item>
+                            </ion-list>
+            
+                      </ion-card-content>
+                  </ion-card>
+              </ion-item>
+          </ion-col>
+        </ion-row>
+    </ion-grid>
+    
+    <ion-grid>
+        <ion-row>
+          <ion-col>
+            <ion-item *ngIf="editingItem" >
+                <ion-card>
+                    <ion-card-header>
+                      <ion-card-subtitle>Edit Item</ion-card-subtitle>
+                    </ion-card-header>
+                      <ion-card-content>
+                        <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
+                            <ion-item>
+                                <ion-input  id="content"
+                                            name="content"
+                                            #content="ngModel"
+                                            [(ngModel)]="item.content" 
+                                            type="text" 
+                                            required
+                                            placeholder="Title - Required"></ion-input>
+                                <ion-label position="stacked" *ngIf="!content.valid && !content.pristine" color="danger">
+                                    Title is required
+                                </ion-label>
+                            </ion-item>
+                            <ion-item>
+                                <ion-input  id="start"
+                                            name="start"
+                                            #start="ngModel"
+                                            [(ngModel)]="item.start" 
+                                            type="text" 
+                                            required
+                                            placeholder="Start Date - YYYY-MM-DD - Required"></ion-input>
+                                
+                                <ion-label position="stacked" *ngIf="!start.valid && !start.pristine" color="danger">
+                                      Format:  YYYY-MM-DD, Required
+                                </ion-label>
+                            </ion-item>
 
-    <ion-item *ngIf="editingItem" >
-        <ion-card>
-            <ion-card-header>
-              <ion-card-subtitle>Select which groups are visible</ion-card-subtitle>
-            </ion-card-header>
-              <ion-card-content>
-                <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
-                    <ion-item>
-                        <ion-input  id="content"
-                                    name="content"
-                                    #content="ngModel"
-                                    [(ngModel)]="item.content" 
-                                    type="text" 
+                            <ion-item>
+                                <ion-input  id="end"
+                                            name="end"
+                                            #email="ngModel"
+                                            [(ngModel)]="item.end" 
+                                            type="text" 
+                                            placeholder="End Date - YYYY-MM-DD - Optional"></ion-input>   
+                            </ion-item>
+
+                            <ion-item>
+                                <ion-select 
+                                    id="group"
+                                    name="group"
+                                    #group="ngModel"
+                                    [(ngModel)]="item.group" 
+                                    ok-text="Select" 
                                     required
-                                    placeholder="Title - Required"></ion-input>
-                        <ion-label position="stacked" *ngIf="!content.valid && !content.pristine" color="danger">
-                            Title is required
-                        </ion-label>
-                    </ion-item>
-                    <ion-item>
-                        <ion-input  id="start"
-                                    name="start"
-                                    #start="ngModel"
-                                    [(ngModel)]="item.start" 
-                                    type="text" 
-                                    required
-                                    placeholder="Start Date - YYYY-MM-DD - Required"></ion-input>
-                        
-                        <ion-label position="stacked" *ngIf="!start.valid && !start.pristine" color="danger">
-                              Format:  YYYY-MM-DD, Required
-                        </ion-label>
-                    </ion-item>
+                                    cancel-text="Cancel"
+                                    placeholder="Group - Required">
+                                  <ion-select-option 
+                                      *ngFor="let group of groups"
+                                      value="{{group.id}}">{{group.content}}</ion-select-option>
+                                </ion-select>
+                                <ion-label position="stacked" *ngIf="!group.valid && !group.pristine" color="danger">
+                                  Group - Required
+                                </ion-label>
+                                <ion-label position="stacked" color="secondary">
+                                  Group - Required
+                                </ion-label>   
+                            </ion-item>
+                            <ion-item>
+                                <ion-input  id="subgroup"
+                                            name="subgroup"
+                                            #subgroup="ngModel"
+                                            [(ngModel)]="item.subgroup" 
+                                            type="text" 
+                                            placeholder="Sub-Group"></ion-input>
+                                <ion-label position="stacked" color="secondary">
+                                  Optional, group events into same sub-category
+                                </ion-label>   
+                            </ion-item>
+                            <ion-item>
+                                <ion-input  id="note"
+                                            name="note"
+                                            #note="ngModel"
+                                            [(ngModel)]="item.note" 
+                                            type="text" 
+                                            placeholder="Note"></ion-input>
+                                <ion-label position="stacked" color="secondary">
+                                  Optional, Write detail informaiton, and references here.
+                                </ion-label>   
+                            </ion-item>
 
-                    <ion-item>
-                        <ion-input  id="end"
-                                    name="end"
-                                    #email="ngModel"
-                                    [(ngModel)]="item.end" 
-                                    type="text" 
-                                    placeholder="End Date - YYYY-MM-DD - Optional"></ion-input>   
-                    </ion-item>
-
-                    <ion-item>
-                        <ion-select 
-                            id="group"
-                            name="group"
-                            #group="ngModel"
-                            [(ngModel)]="item.group" 
-                            ok-text="Select" 
-                            required
-                            cancel-text="Cancel"
-                            placeholder="Group - Required">
-                          <ion-select-option 
-                              *ngFor="let group of groups"
-                              value="{{group.id}}">{{group.content}}</ion-select-option>
-                        </ion-select>
-                        <ion-label position="stacked" *ngIf="!group.valid && !group.pristine" color="danger">
-                          Group - Required
-                        </ion-label>
-                        <ion-label position="stacked" color="secondary">
-                          Group - Required
-                        </ion-label>   
-                    </ion-item>
-                    <ion-item>
-                        <ion-input  id="subgroup"
-                                    name="subgroup"
-                                    #subgroup="ngModel"
-                                    [(ngModel)]="item.subgroup" 
-                                    type="text" 
-                                    placeholder="Sub-Group"></ion-input>
-                        <ion-label position="stacked" color="secondary">
-                          Optional, group events into same sub-category
-                        </ion-label>   
-                    </ion-item>
-                    <ion-item>
-                        <ion-input  id="note"
+                          <div padding text-center>
+                            <ion-spinner slot="middle" name="dots" color="primary" *ngIf="isLoading" ></ion-spinner>
+                            <ion-button type="submit" size="large" [disabled]="!eventForm.valid" expand="block">Save</ion-button>
+                          </div>
+                      </form>
+                    </ion-card-content>
+                </ion-card>
+            </ion-item>
+          </ion-col>
+          <ion-col>
+              <ion-item *ngIf="editingEdge" >
+                  <ion-card>
+                      <ion-card-header>
+                        <ion-card-subtitle>Edit Connection</ion-card-subtitle>
+                        From: {{edge_meta.from}} -- To: {{edge_meta.to}}
+                      </ion-card-header>
+                        <ion-card-content>
+                          <form (ngSubmit)="onSubmitEdge()" #edgeForm="ngForm">
+                              <ion-item>
+                                  <ion-input  name="label"
+                                              [(ngModel)]="edge.label" 
+                                              type="text" 
+                                              placeholder="Label"></ion-input>
+                              </ion-item>
+                              <ion-chip>
+                                  <ion-label>Dashes: </ion-label>
+                                  <ion-toggle 
+                                    name="dashes"
+                                    [(ngModel)]="edge.dashes"  
+                                    color="secondary"></ion-toggle>
+                              </ion-chip>
+                              <ion-item>
+                                  <ion-textarea 
                                     name="note"
-                                    #note="ngModel"
-                                    [(ngModel)]="item.note" 
-                                    type="text" 
-                                    placeholder="Note"></ion-input>
-                        <ion-label position="stacked" color="secondary">
-                          Optional, Write detail informaiton, and references here.
-                        </ion-label>   
-                    </ion-item>
+                                    [(ngModel)]="edge.note" 
+                                    placeholder="Notes - Best to include reference"></ion-textarea>
+                              </ion-item>
 
-                  <div padding text-center>
-                    <ion-spinner slot="middle" name="dots" color="primary" *ngIf="isLoading" ></ion-spinner>
-                    <ion-button type="submit" size="large" [disabled]="!eventForm.valid" expand="block">Save</ion-button>
-                  </div>
-              </form>
-            </ion-card-content>
-        </ion-card>
-    </ion-item>
+
+
+                            <div padding text-center>
+                               <ion-button type="submit" size="large" [disabled]="!edgeForm.valid" expand="block">Save</ion-button>
+                               <ion-button type="submit" size="large" color="danger" expand="block">Remove</ion-button>
+                            </div>
+                        </form>
+                      </ion-card-content>
+                  </ion-card>
+              </ion-item>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    
 <!--
   <ion-list>
       <ion-item *ngFor="let item of items">

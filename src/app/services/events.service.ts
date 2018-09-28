@@ -25,7 +25,7 @@ export class EventsService extends DocService {
     this.feathersService.on('removed', doc => this._remove(doc));
   }
 
-  async remove(doc: EventItem) {
+  async remove(doc) {
     console.log('Doc getting ready for remove', doc);
     doc._removed = true;
     doc._dirty = true;
@@ -35,7 +35,7 @@ export class EventsService extends DocService {
     console.log('Deleting result', msg);
   }
 
-  async save(doc: EventItem) {
+  save(doc: EventItem) {
     doc._dirty = true;
 
     // if new doc, then lets give it a temp id
@@ -49,11 +49,15 @@ export class EventsService extends DocService {
     if (doc._newid) {
       // we don't need newid field, this is only for client use
       const newobj = Object.assign({}, doc);
+      newobj.id = newobj._id;
       delete newobj._newid;
-      const msg = await this.feathersService.create(newobj);
+      const msg = this.feathersService.create(newobj);
     } else {
-      const msg = await this.feathersService.update(doc._id, doc);
+      doc.id = doc._id;
+      const msg = this.feathersService.update(doc._id, doc);
     }
+
+    return doc;
   }
 
   async loadAllDocs(force = false) {

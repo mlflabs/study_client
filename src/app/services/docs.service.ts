@@ -11,14 +11,17 @@ export abstract class DocService {
 
   private dataStore: {
     docs: Doc[],
-    selected: Doc
+    selected: Doc,
+    lastModified: Doc,
   };
 
   private _docs: BehaviorSubject<Doc[]>;
+  private _lastModified: BehaviorSubject<{}>;
 
   constructor() {
-    this.dataStore = { docs: [], selected: new Doc() };
+    this.dataStore = { docs: [], selected: new Doc(), lastModified:new Doc() };
     this._docs = new BehaviorSubject(this.dataStore.docs);
+    this._lastModified = new BehaviorSubject(this.dataStore.lastModified);
   }
 
   getDoc(id: string): Doc {
@@ -46,6 +49,10 @@ export abstract class DocService {
     );
   }
 
+  getLastModifiedObservable(): Observable<any> {
+    return this._lastModified.asObservable();
+  }
+
   getDocsObservable(): Observable<any> {
     return this._docs.asObservable();
   }
@@ -55,19 +62,23 @@ export abstract class DocService {
     this._docs.next(this.dataStore.docs);
   }
 
-  _remove(doc: Doc): Doc {
+  _remove(doc): Doc {
     this.dataStore.docs = saveIntoArray(doc, this.dataStore.docs);
     this.dataStore.docs = this.dataStore.docs.filter(d => d._removed !== true);
     this._docs.next(this.dataStore.docs);
+    this.dataStore.lastModified = doc;
+    this._lastModified.next(this.dataStore.lastModified);
     return doc;
   }
 
-  _save(doc: Doc): Doc {
+  _save(doc): Doc {
     console.log('Doc Save Before', doc, this.dataStore.docs);
     if (!doc._removed) {
       this.dataStore.docs = saveIntoArray(doc, this.dataStore.docs);
     }
     this._docs.next(this.dataStore.docs);
+    this.dataStore.lastModified = doc;
+    this._lastModified.next(this.dataStore.lastModified);
     console.log('Doc Save After', this.dataStore.docs);
     return doc;
   }

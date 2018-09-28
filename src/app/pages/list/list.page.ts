@@ -1,9 +1,10 @@
 import { Component, ViewChild, ElementRef, OnInit, AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { Doc, EventItem } from '../../models/doc.model';
+import { Doc, EventItem, newEdge } from '../../models/doc.model';
 import { EventsService } from '../../services/events.service';
 import * as vis from 'vis';
 import { GroupsService } from '../../services/groups.service';
 import { timeout } from '../../../../node_modules/rxjs/operators';
+import { saveIntoArray } from '../../utils';
 @Component({
   selector: 'app-list',
   templateUrl: 'list.page.html',
@@ -13,15 +14,26 @@ import { timeout } from '../../../../node_modules/rxjs/operators';
 export class ListPage implements OnInit, AfterViewInit {
 
   @ViewChild('timeline', { read: ElementRef })
-  timeline: ElementRef;
+  timeline_ref: ElementRef;
+
+  @ViewChild('graph', { read: ElementRef })
+  graph_ref: ElementRef;
 
   public item: EventItem = new EventItem();
-  public editingItem = false;
+  public edge = {};
+  public edge_meta = {from: '', to: '', to_obj: null, from_obj: null};
+  public editingItem = false; //show edit node/even from or not
+  public editingEdge = false; //show edit edge from or not
+  public search = '';
+  public searchItems = [];
   public groups = [];
   public items = []; // new vis.DataSet(this.vis_dataset_options);
   public subscription: any;
+  
+  selectedGraphItem = null;
 
   vis_timeline = null;
+  vis_graph = null;
 
   vis_options = {
     editable: {
@@ -46,36 +58,6 @@ export class ListPage implements OnInit, AfterViewInit {
       this.eventService.save(newitem);
       callback(null);
     },
-
-    onMove: (item, callback) => {
-      callback(item);
-      /*
-      var title = 'Do you really want to move the item to\n' +
-          'start: ' + item.start + '\n' +
-          'end: ' + item.end + '?';
-
-      prettyConfirm('Move item', title, function (ok) {
-        if (ok) {
-          callback(item); // send back item as confirmation (can be changed)
-        }
-        else {
-          callback(null); // cancel editing item
-        }
-      });
-      */
-    },
-
-    onMoving: (item, callback) => {
-      callback(item);
-      /*
-      if (item.start < min) item.start = min;
-      if (item.start > max) item.start = max;
-      if (item.end   > max) item.end   = max;
-
-      callback(item); // send back the (possibly) changed item
-      */
-    },
-
     onUpdate: (item, callback) => {
       console.log('OnUpdate: ', item);
       callback(item);
@@ -91,79 +73,65 @@ export class ListPage implements OnInit, AfterViewInit {
       });
       */
     },
-
     onRemove: (item, callback) => {
       console.log('Removing Item: ', item);
       callback(item);
-      /*
-      prettyConfirm('Remove item', 'Do you really want to remove item ' + item.content + '?', function (ok) {
-        if (ok) {
-          callback(item); // confirm deletion
-        }
-        else {
-          callback(null); // cancel deletion
-        }
-      });
-      */
     }
   };
 
-  vis_groups = new vis.DataSet([
-    { id: 1, content: 'Group 1' },
-    { id: 2, content: 'Group 2' }
-  ]);
+  graph_nodes = [];
+  /*[
+    {id: 1, label: 'Node 1'},
+    {id: 2, label: 'Node 2'},
+    {id: 3, label: 'Node 3'},
+    {id: 4, label: 'Node 4'},
+    {id: 5, label: 'Node 5'}
+  ];*/
 
-  vis_items = new vis.DataSet([
-    { id: 1, type: 'point', content: 'item 1', editable: true, start: '2014-04-20', group: 1, className: 'negative' },
-    { id: 2, type: 'point', content: 'item 2', editable: true, start: '2014-04-14', group: 2, className: 'negative' },
-    { id: 3, type: 'point', content: 'item 3', editable: true, start: '2014-04-18', group: 1 },
-    {
-      id: 4, content: 'item 4', type: 'background', editable: true, start: '2014-04-16',
-      className: 'negative', end: '2014-04-19',
-    },
-    {
-      id: 5, content: 'item 5', type: 'background', editable: true, start: '2019-04-25',
-      end: '2020-04-25', group: 2
-    },
-    {
-      id: 11, content: 'item 1', type: 'background', editable: true, start: '2014-04-20',
-      end: '2019-07-25', group: 1
-    },
-    { id: 12, content: 'item 2', editable: true, start: '2014-04-14', group: 2 },
-    { id: 13, content: 'item 3', editable: true, start: '2014-04-18', group: 1 },
-    { id: 14, content: 'item 4', editable: true, start: '2014-04-16', end: '2014-04-19' },
-    { id: 15, content: 'item 5', editable: true, start: '2019-04-25' },
-    { id: 21, content: 'item 1', editable: true, start: '2014-04-20', group: 1 },
-    { id: 22, content: 'item 2', editable: true, start: '2014-04-14', group: 2 },
-    { id: 23, content: 'item 3', editable: true, start: '2014-04-18' },
-    { id: 24, content: 'item 4', editable: true, start: '2014-04-16', end: '2014-04-19', group: 1 },
-    { id: 25, content: 'item 5', editable: true, start: '2019-04-25' },
-    { id: 36, content: 'item 6', editable: true, start: '2018-10-27', type: 'point' }
-  ]);
+  graph_edges = [];
+  /*[
+    {from: 1, to: 2, label: 'middle',     font: {align: 'middle'},  arrows:'to', dashes:true},
+    {from: 1, to: 3, label: 'top',        arrows:{middle:{scaleFactor:0.5},from:true}},
+    {from: 2, to: 4, label: 'horizontal', font: {align: 'horizontal'}, arrows:'to, middle'},
+    {from: 2, to: 5, label: 'bottom',     font: {align: 'bottom'},arrows:'to, middle, from'}
+  ];*/
 
-
-  prettyConfirm(title, text, callback) {
-    /*
-    swal({
-      title: title,
-      text: text,
-      type: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: "#DD6B55"
-    }, callback);
-    */
-  }
-
-  prettyPrompt(title, text, inputValue, callback) {
-    /*swal({
-      title: title,
-      text: text,
-      type: 'input',
-      showCancelButton: true,
-      inputValue: inputValue
-    }, callback);
-    */
-  }
+  graph_options = {
+    autoResize: true,
+    height: '100%',
+    width: '100%',
+    clickToUse: false,
+    manipulation: {
+      addNode: (item, cb) => {
+        console.log('Graph Item added: ', item);
+        let newitem = new EventItem({...item, ...{id: null, _id: null}});
+        newitem = this.eventService.save(newitem);
+        cb(newitem);
+      },
+      editNode: (data, cb) => {
+        console.log('OnEditNode: ', data);
+        cb(data);
+      },
+      deleteNode: (data, cb) => {
+        console.log('deleteNode: ', data);
+        cb(data);
+      },
+      addEdge: (data, cb) => {
+        console.log('onAddEdge: ', data);
+        if (data.from === data.to) {
+          //var r = confirm("Do you want to connect the node to itself?");
+          //if (r == true) {
+           // callback(data);
+          //}
+        }
+        else {
+          const edge  = newEdge({to: data.to, from: data.from});
+          this.setupEditEdge(edge);
+          cb(edge);
+        }
+      }
+    }
+  };
 
   constructor(public eventService: EventsService,
     public groupService: GroupsService,
@@ -171,11 +139,336 @@ export class ListPage implements OnInit, AfterViewInit {
 
   }
 
+  setupEditEdge(edge){
+    //find both nodes, and get their names
+    console.log(this.items);
+    const to = this.items.find(n => n._id === edge.to);
+    const from = this.items.find(n => n._id === edge.from);
+    console.log('SetupEditEdge 2 Nodes: ', edge, from, to);
+    this.edge_meta = {to: to.content, 
+                      from: from.content,
+                      to_obj: to,
+                      from_obj:from};
+    this.editingEdge = true;
+    this.edge = edge;
+    this.cdr.detectChanges();
+  }
+
+
+  ngOnInit() {
+  }
+  
   ngAfterViewInit(): void {
 
-    console.log(this.timeline.nativeElement.textContent);
-    this.vis_timeline = new vis.Timeline(this.timeline.nativeElement, this.items, this.vis_options);
+    console.log(this.timeline_ref.nativeElement.textContent);
+    this.vis_timeline = new vis.Timeline(this.timeline_ref.nativeElement, this.items, this.vis_options);
+    this.setup_timeline();
+    
 
+
+    console.log(this.graph_ref.nativeElement.textContent);
+    this.vis_graph = new vis.Network(this.graph_ref.nativeElement, {
+      nodes: this.graph_nodes,
+      edges: this.graph_edges
+    }, this.graph_options);
+    this.setup_network();
+    
+
+    this.setup_subscriptions();
+
+    setTimeout(() => {
+
+      
+      this.redraw_timeline(true);
+      //this.vis_timeline.redraw();
+      //this.vis_timeline.fit();
+      this.vis_timeline.zoomIn(0.1);
+      this.cdr.detectChanges();
+      this.vis_timeline.redraw();
+    }, 1000);
+
+    setTimeout(() => {
+
+      this.vis_graph.redraw();
+      this.vis_graph.fit();
+      
+
+      this.redraw_timeline(true);
+      this.vis_timeline.zoomIn(0.1);
+      this.vis_timeline.redraw();
+      this.cdr.detectChanges();
+    }, 2000);
+
+    setTimeout(() => {
+      this.redraw_timeline(true);
+      this.cdr.detectChanges();
+    }, 3000);
+    setTimeout(() => {
+      this.redraw_timeline(true);
+      this.cdr.detectChanges();
+    }, 4000);
+  }
+
+  onGroupChange(group) {
+    console.log('Group Changed: ', group);
+    group.visible = !group.visible;
+    this.groupService.save(Object.assign({}, group));
+  }
+
+
+  move(percentage) {
+    const range = this.vis_timeline.getWindow();
+    const interval = range.end - range.start;
+
+    this.vis_timeline.setWindow({
+      start: range.start.valueOf() - interval * percentage,
+      end: range.end.valueOf() - interval * percentage
+    });
+  }
+
+  customOrder(a, b) {
+    return a.id - b.id; // or by priority
+  }
+
+
+
+  onSubmit() {
+    console.log('Saving event: ', this.item);
+    this.eventService.save(Object.assign({}, { _id: null }, this.item));
+
+  }
+
+  onSubmitEdge() {
+    console.log('onSubmitEdge');
+    //find our 2 edges
+    const from = this.edge_meta.from_obj;
+    const to = this.edge_meta.to_obj;
+
+    //make sure we have alraedy to, from array item, 
+    //they are not required by default for new objects
+    if(!to.to)to.to = [];
+    if(!from.from)from.from =[];
+    console.log('@@@@@SAVING EDGE: ', this.edge);
+    //see if we are adding or modifying
+    to.to = saveIntoArray(this.edge,to.to,'id');
+    from.from = saveIntoArray(this.edge, from.from, 'id');
+
+    this.eventService.save(from);
+    this.eventService.save(to);
+
+  }
+
+  //need to implement better remove mechanism
+  removeItem2(doc) {
+    console.log('Removing event: ', doc);
+    this.eventService.remove(doc);
+
+  }
+
+
+  setup_network(){
+    this.vis_graph.on('selectNode', (props)=>{
+      console.log('selectNode', props.nodes[0]);
+
+      const node = props.nodes[0];
+      this.selectedGraphItem = node;
+
+      this.cdr.detectChanges();
+    });
+
+    this.vis_graph.on('selectEdge', (props)=>{
+      console.log('selectEdge', props);
+    });
+
+    this.vis_graph.on('deselectNode', (props)=>{
+      console.log('deselectNode', props);
+
+      if(props.nodes.length === 0)
+        this.selectedGraphItem = null;
+
+      this.cdr.detectChanges();
+    });
+
+    this.vis_graph.on('deselectEdge', (props)=>{
+      console.log('deselectEdge', props);
+    });
+
+    this.vis_graph.on('doubleClick', props =>{
+      console.log('doubleclick: ', props);
+      //if we click on node, lets put it into edits
+      if(props.nodes.length > 0){
+        console.log('Graph Editing item: ', this.items.find(i => i._id === props.nodes[0]));
+        this.item = this.items.find(i => i._id === props.nodes[0]);
+        this.cdr.detectChanges();
+
+        //lets load all related nodes
+        const newnodes = {};
+        this.item.from.forEach(edge => {
+          const node = this.items.find(i => i._id ===  edge.to);
+          newnodes[node._id] = node;
+        });
+        this.item.to.forEach(edge => {
+          const node = this.items.find(i => i._id === edge.from);
+          newnodes[node._id] = node;
+        });
+        console.log('Related nodes to add: ', newnodes);
+        this.addNodesToGraph(Object.values(newnodes));
+      }
+    });
+
+  }
+
+  addNodeConnection(){
+    this.vis_graph.addEdgeMode();
+  }
+
+  graphNodeEdit(){
+    console.log('graphNodeEdit');
+    this.editingItem = this.items.find(i => i._d === this.selectedGraphItem);
+  }
+
+  graphNodeRemoveFromGraph(){
+    console.log('graphNodeRemoveFromGraph');
+    const node = this.items.find(i => i._id === this.selectedGraphItem);
+    
+    this.removeNodeFromGraph(node);
+    this.selectedGraphItem = null;
+
+  }
+
+  graphNodeDelete(){
+    console.log('graphNodeDelete');
+  }
+
+  searchItemSelected(item){
+    console.log('SearchItemSelected: ', item);
+
+    //see if node is already displayed
+    if(this.graph_nodes.find(i=>i.label === item.content)){
+      console.log('Item Already in Graph');
+    } 
+    else {
+      console.log('Adding item to Graph');
+      this.addNodesToGraph(item);
+    }
+  }
+
+  onSearchChange(){
+    console.log('Search: ', this.search);
+    let max = 10;
+    // tslint:disable-next-line:prefer-const
+    let searchItems = [];
+    
+    for(let i = 0; i < this.items.length; i++){
+      if(!this.items[i].content) continue;
+      if(this.items[i].content.includes(this.search)){
+        searchItems.push(this.items[i]);
+        max--;
+      }
+      if(max < 0)break;
+    }
+    console.log('SearchItems: ', searchItems);
+    this.searchItems = searchItems;
+  }
+
+  onSelectTimelineEvent(props){
+    // lets see if we are selecting or de-selecting
+    if(props.items.length === 0){
+      this.editingItem = false;
+      //if deselecting, do nothing to graph
+    }
+    else {
+      this.editingItem = true;
+      const i = this.items.find(doc => doc._id === props.items[0]);
+      this.item = Object.assign({}, i);
+      console.log('selected this.item: ', this.item);
+      this.cdr.detectChanges();
+
+      //we selected time event, so lets clear the graph nodes, and put in this one
+      //this.redraw_graph([i],[], true);
+      this.addNodesToGraph(i);
+    }
+  }
+
+
+  updateGraphNode(node){
+    //lets see if in graph, if so lets modify it
+    const duplicateNode = this.graph_nodes.find(d => node._id === d.id);
+    if(duplicateNode){
+      console.log('Found a doc to replace in graph', duplicateNode); 
+      console.log('this.graph_nodes: ', this.graph_nodes);
+      this.graph_nodes = saveIntoArray(node, this.graph_nodes);
+
+
+      this.redraw_graph(this.graph_nodes, false);
+    }
+  }
+
+
+  addNodesToGraph(node){
+    if(Array.isArray(node)){
+      console.log('Adding multiple nodes to graph: ', node);
+      node.forEach(n => {
+        n.label = n.content;
+        this.graph_nodes = saveIntoArray(n, this.graph_nodes);
+      });
+    }
+    else {
+      console.log('Adding Node: ', node);
+      node.label = node.content; //format node
+      this.graph_nodes = saveIntoArray(node, this.graph_nodes);
+    }
+
+    this.redraw_graph(this.graph_nodes, false);
+  }
+
+  removeNodeFromGraph(node){
+    console.log('Remvoing Node', node, this.graph_nodes);
+    if(!node) return;
+    this.graph_nodes = this.graph_nodes.filter(n=> n.id !== node.id);
+    console.log(this.graph_nodes);
+    this.redraw_graph(this.graph_nodes, false);
+  }
+
+
+  redraw_graph(nodes, fit = false, redraw=true){
+    
+    nodes.map(n =>{
+      n.label = n.content;
+    });
+
+    this.graph_nodes = nodes;
+
+    //lets figure out edges, which ones have both ends
+    const edgeHash = {};
+    this.graph_nodes.forEach(n => {
+         console.log('N: ', n);
+         if(!n.to) n.to = new Array();
+         if(!n.from) n.from = new Array();
+
+         n.to.forEach(to=> edgeHash[to.id]=to);
+         n.from.forEach(from => edgeHash[from.id]=from);
+    });
+
+    this.graph_edges = Object.values(edgeHash);
+
+    console.log('Graph Nodes: ', nodes);
+    console.log('Graph Edges: ', this.graph_edges);
+
+    this.vis_graph.setData({
+      nodes: this.graph_nodes,
+      edges: this.graph_edges
+    });
+
+    if(fit)
+      this.vis_graph.fit();
+
+    if(redraw)
+      this.vis_graph.redraw();
+  }
+
+
+  setup_timeline(){
     this.vis_timeline.on('rangechange', function (properties) {
       console.log('rangechange', properties);
     });
@@ -186,17 +479,7 @@ export class ListPage implements OnInit, AfterViewInit {
 
     // when we select item in timeline, lets make it the editable item
     this.vis_timeline.on('select', (properties) => {
-      // lets see if we are selecting or de-selecting
-      if(properties.items.length === 0){
-        this.editingItem = false;
-      }
-      else {
-        this.editingItem = true;
-        const i = this.items.find(doc => doc._id === properties.items[0]);
-        this.item = Object.assign({}, i);
-        console.log('selected this.item: ', this.item);
-        this.cdr.detectChanges();
-      }
+      this.onSelectTimelineEvent(properties);
     });
 
     this.vis_timeline.on('itemover', function (properties) {
@@ -236,21 +519,14 @@ export class ListPage implements OnInit, AfterViewInit {
     document.getElementById('fitContents').onclick = () => { this.vis_timeline.fit(); };
     // document.getElementById('toggleRollingMode').onclick = () => { this.vis_timeline.toggleRollingMode(); };
 
-    // other possible events:
+  }
 
-    // timeline.on('mouseOver', function (properties) {
-    //   logEvent('mouseOver', properties);
-    // });
-
-    // timeline.on("mouseMove", function(properties) {
-    //   logEvent('mouseMove', properties);
-    // });
-
+  setup_subscriptions(){
     this.subscription = this.eventService.getDocsObservable().subscribe(
       docs => {
         console.log('event list docs refreshed', docs);
         this.items = (docs);
-        this.redraw();
+        this.redraw_timeline();
       }
     );
 
@@ -258,123 +534,67 @@ export class ListPage implements OnInit, AfterViewInit {
       docs => {
         console.log('Groups:::: ', docs);
         this.groups = docs;
-        this.redraw(true);
+        this.redraw_timeline(true);
+      }
+    );
+
+    this.eventService.getLastModifiedObservable().subscribe(
+      doc =>{
+        console.log('Modified Doc Subscripiton: ', doc);
+        //check if its a save or delete
+        if(doc._removed){
+          //lets see if the item is in graph, if so remove it 
+          this.removeNodeFromGraph(doc);
+        }
+        else{
+          this.updateGraphNode(doc);
+        }
       }
     );
 
     this.groupService.loadAllDocs();
     this.eventService.loadAllDocs();
-    this.redraw(true);
-    this.cdr.detectChanges();
-
-    setTimeout(() => {
-      this.redraw(true);
-      //this.vis_timeline.redraw();
-      //this.vis_timeline.fit();
-      this.vis_timeline.zoomIn(0.1);
-      this.cdr.detectChanges();
-      this.vis_timeline.redraw();
-    }, 1000);
-
-    setTimeout(() => {
-      this.redraw(true);
-      //this.vis_timeline.redraw();
-      //this.vis_timeline.fit();
-      this.vis_timeline.zoomIn(0.1);
-      this.vis_timeline.redraw();
-      this.cdr.detectChanges();
-    }, 2000);
-
-    setTimeout(() => {
-      this.redraw(true);
-      //this.vis_timeline.redraw();
-      //this.vis_timeline.fit();
-      //this.vis_timeline.zoomIn(0.2);
-      this.cdr.detectChanges();
-    }, 3000);
-    setTimeout(() => {
-      this.redraw(true);
-      //this.vis_timeline.redraw();
-      //this.vis_timeline.fit();
-      //this.vis_timeline.zoomIn(0.2);
-      this.cdr.detectChanges();
-    }, 4000);
   }
 
-  onGroupChange(group) {
-    console.log('Group Changed: ', group);
-    group.visible = !group.visible;
-    this.groupService.save(Object.assign({}, group));
-  }
 
-  redraw(fit = false) {
-      console.log('REDRAWING....');
 
-      // filter which groups are visible
-      const visible_groups = this.groups
-        .filter(doc => doc.visible)
-        .map(doc => {
-          doc.id = doc._id;
-          return doc;
-        });
+  redraw_timeline(fit = false) {
+    console.log('REDRAWING....');
 
-      // based on visible groups, not filter which events are visible
-      const visible_events = this.items
-        .filter(item => {
-          for (let i = 0; i < visible_groups.length; ++i) {
-            if (item.group === visible_groups[i].id) {
-              console.log('Success');
-              return true;
-            }
+    // filter which groups are visible
+    const visible_groups = this.groups
+      .filter(doc => doc.visible)
+      .map(doc => {
+        doc.id = doc._id;
+        return doc;
+      });
+
+    // based on visible groups, not filter which events are visible
+    const visible_events = this.items
+      .filter(item => {
+        for (let i = 0; i < visible_groups.length; ++i) {
+          if (item.group === visible_groups[i].id) {
+            console.log('Success');
+            return true;
           }
-          return false;
-        }).map(doc => { // vis only works with id, not _id
-          doc.id = doc._id;
-          return doc;
-        });
+        }
+        return false;
+      }).map(doc => { // vis only works with id, not _id
+        doc.id = doc._id;
+        return doc;
+      });
 
-      console.log('Visible: ', visible_groups, visible_events);
+    console.log('Visible: ', visible_groups, visible_events);
 
-      this.vis_timeline.setGroups(visible_groups);
-      this.vis_timeline.setItems(visible_events);
+    this.vis_timeline.setGroups(visible_groups);
+    this.vis_timeline.setItems(visible_events);
 
-      if(fit){
-        this.vis_timeline.fit();
-      }
+    if(fit){
+      this.vis_timeline.fit();
+    }
 
-      //this.vis_timeline.redraw();
-      this.cdr.detectChanges();
-      console.log('Timeline gettems ', this.vis_timeline.getVisibleItems());
-  }
-
-  move(percentage) {
-    const range = this.vis_timeline.getWindow();
-    const interval = range.end - range.start;
-
-    this.vis_timeline.setWindow({
-      start: range.start.valueOf() - interval * percentage,
-      end: range.end.valueOf() - interval * percentage
-    });
-  }
-
-  customOrder(a, b) {
-    return a.id - b.id; // or by priority
-  }
-
-
-  ngOnInit() {
-  }
-
-  onSubmit() {
-    console.log('Saving event: ', this.item);
-    this.eventService.save(Object.assign({}, { _id: null }, this.item));
-
-  }
-
-  removeItem(doc) {
-    console.log('Removing event: ', doc);
-    this.eventService.remove(doc);
-
+    //this.vis_timeline.redraw();
+    this.cdr.detectChanges();
   }
 
 }
