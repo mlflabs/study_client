@@ -41,6 +41,12 @@ export class AppComponent {
       auth : true
     },
     {
+      title: 'Admin',
+      url: '/admin/orm',
+      icon: 'build',
+      auth : true
+    },
+    {
       title: 'Login',
       url: '/auth/login',
       icon: 'contact',

@@ -25,6 +25,9 @@ const routes: Routes = [
     loadChildren: './pages/private/user/user.module#UserPageModule'
   },
   { path: 'groups', loadChildren: './pages/groups/groups.module#GroupsPageModule' },
+  { path: 'admin/orm', 
+    canActivate: [ AuthGuardService ],
+    loadChildren: './pages/admin/orm/orm.module#OrmPageModule' },
 ];
 
 @NgModule({

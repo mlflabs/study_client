@@ -50,6 +50,12 @@ export class AuthService {
     this.isAuthenticated.next(false);
   }
 
+  async getUsername(){
+    const u = await this.storage.get(USER_KEY);
+    console.log('Auth Getting username: ', u);
+    return u.name;
+  }
+
 
   async loginJWT(token: string = null) {
     try {

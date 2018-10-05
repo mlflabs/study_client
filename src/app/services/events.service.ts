@@ -1,18 +1,16 @@
 import { Injectable } from '@angular/core';
-import { DocService } from './docs.service';
 import { environment } from '../../environments/environment';
 import { EventItem } from '../models/doc.model';
 import { FeathersService } from './feathers.service';
+import { DocServiceAbstract } from './_docs.service';
 
 const ObjectID = require('bson-objectid');
 
 @Injectable({
   providedIn: 'root'
 })
-export class EventsService extends DocService {
+export class EventsService extends DocServiceAbstract {
 
-  private _url: string;
-  private _serviceName: string;
   private feathersService: any;
 
 
@@ -35,7 +33,7 @@ export class EventsService extends DocService {
     console.log('Deleting result', msg);
   }
 
-  save(doc: EventItem) {
+  save(doc) {
     doc._dirty = true;
 
     // if new doc, then lets give it a temp id

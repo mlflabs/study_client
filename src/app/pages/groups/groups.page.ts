@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
 import { Doc, GroupItem } from '../../models/doc.model';
 import { GroupsService } from '../../services/groups.service';
+import { DocService, GROUP_SERVICE } from '../../services/doc.service';
 
 @Component({
   selector: 'app-groups',
@@ -8,7 +9,7 @@ import { GroupsService } from '../../services/groups.service';
   styleUrls: ['./groups.page.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class GroupsPage implements OnInit {
+export class GroupsPage implements OnInit, OnDestroy {
 
   public item: GroupItem = new GroupItem();
   public items = [];
@@ -16,34 +17,38 @@ export class GroupsPage implements OnInit {
   public subscription: any;
 
 
-  constructor(public groupsService: GroupsService,
-    public cdr: ChangeDetectorRef) {
+  constructor(public docService: DocService,
+              public cdr: ChangeDetectorRef) {
 
   }
 
-  ngOnInit(): void {
+  async ngOnInit() {
 
-    this.subscription = this.groupsService.getDocsObservable().subscribe(
-      docs => {
-        console.log(docs);
-        this.items = docs;
+    this.subscription = this.docService.subscribeChanges(GROUP_SERVICE)
+      .subscribe( async docs => {
+        this.items = await this.docService.getAllDocs(GROUP_SERVICE);
+        console.log('Group Refresh: ', this.items);
         this.cdr.detectChanges();
-      }
-    );
+      });
+    
+    this.items = await this.docService.getAllDocs(GROUP_SERVICE);
+    console.log('Group Page: ', this.items);
+    this.cdr.detectChanges();
+  }
 
-    this.groupsService.loadAllDocs();
-
+  ngOnDestroy() {
+    this.subscription.unsubscribe();
   }
 
   onSubmit() {
     console.log('Saving: ', this.item);
-    this.groupsService.save(Object.assign({}, this.item, { _id: null }));
+    this.docService.save(Object.assign({}, this.item, { _id: null }), GROUP_SERVICE);
   }
 
   removeItem(doc) {
     console.log('Removing: ', doc);
-    this.groupsService.remove(doc);
-
+    this.docService.delete(doc, GROUP_SERVICE);
+    //this.groupsService.remove(doc);
   }
 
 }

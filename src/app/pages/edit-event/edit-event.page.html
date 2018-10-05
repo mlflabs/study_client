@@ -1,0 +1,165 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>{{printStatus()}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+
+    <ion-segment
+      color="primary"
+      [(ngModel)]="view"  >
+      <ion-segment-button value="main">Main</ion-segment-button>
+      <ion-segment-button value="ranges">Date Ranges</ion-segment-button>
+    </ion-segment>
+
+
+
+  <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
+    <div *ngIf="view === 'main'" >
+    <ion-item>
+        <ion-input  id="content"
+                    name="content"
+                    #content="ngModel"
+                    [(ngModel)]="item.content" 
+                    type="text" 
+                    required
+                    placeholder="Title - Required"></ion-input>
+        <ion-label position="stacked" *ngIf="!content.valid && !content.pristine" color="danger">
+            Title is required
+        </ion-label>
+    </ion-item>
+    <ion-item>
+        <ion-input  id="start"
+                    name="start"
+                    #start="ngModel"
+                    [(ngModel)]="item.start" 
+                    type="text" 
+                    required
+                    placeholder="Start Date - YYYY-MM-DD - Required"></ion-input>
+        
+        <ion-label position="stacked" *ngIf="!start.valid && !start.pristine" color="danger">
+              Format:  YYYY-MM-DD, Required
+        </ion-label>
+    </ion-item>
+
+    <ion-item>
+        <ion-input  id="end"
+                    name="end"
+                    #email="ngModel"
+                    [(ngModel)]="item.end" 
+                    type="text" 
+                    placeholder="End Date - YYYY-MM-DD - Optional"></ion-input>   
+    </ion-item>
+
+    <ion-item>
+        <ion-select 
+            id="group"
+            name="group"
+            #group="ngModel"
+            [(ngModel)]="item.group" 
+            ok-text="Select" 
+            required
+            cancel-text="Cancel"
+            placeholder="Group - Required">
+          <ion-select-option 
+              *ngFor="let group of groups"
+              value="{{group.id}}">{{group.content}}</ion-select-option>
+        </ion-select>
+        <ion-label position="stacked" *ngIf="!group.valid && !group.pristine" color="danger">
+          Group - Required
+        </ion-label>
+    </ion-item>
+    <ion-segment
+              id="type"
+              name="type" 
+              mode='ios'
+              [(ngModel)]="item.type"  >
+      <ion-segment-button value="box">Box</ion-segment-button>
+      <ion-segment-button value="point">Point</ion-segment-button>
+      <ion-segment-button value="range">Range</ion-segment-button>
+      <ion-segment-button value="background">Background</ion-segment-button>
+    </ion-segment>
+    <ion-item>
+        <ion-input  id="subgroup"
+                    name="subgroup"
+                    #subgroup="ngModel"
+                    [(ngModel)]="item.subgroup" 
+                    type="text" 
+                    placeholder="Sub-Group"></ion-input>   
+    </ion-item>
+    <ion-item>
+        <ion-textarea 
+                    id="note"
+                    name="note"
+                    #note="ngModel"
+                    [(ngModel)]="item.note" 
+                    type="text" 
+                    placeholder="Note - Details, References"></ion-textarea>
+    </ion-item>
+  </div>
+
+  <!-- Date Range View -->
+  <div  *ngIf="view === 'ranges'" >
+    <ion-item>
+        <ion-input  
+        name="viewDay"
+        [(ngModel)]="item.viewDay" 
+        type="text" 
+        placeholder="Day View"></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-input  
+        name="viewWeek"
+        [(ngModel)]="item.viewWeek" 
+        type="text" 
+        placeholder="Week View"></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-input  
+        name="viewMonth"
+        [(ngModel)]="item.viewMonth" 
+        type="text" 
+        placeholder="Month View"></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-input  
+        name="viewYear"
+        [(ngModel)]="item.viewYear" 
+        type="text" 
+        placeholder="Year View"></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-input  
+        name="viewDecade"
+        [(ngModel)]="item.viewDecade" 
+        type="text" 
+        placeholder="Decade View"></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-input  
+        name="viewCentury"
+        [(ngModel)]="item.viewCentury" 
+        type="text" 
+        placeholder="Century View"></ion-input>
+    </ion-item>
+    <ion-item>
+        <ion-input  
+        name="viewMillenium"
+        [(ngModel)]="item.viewMillenium" 
+        type="text" 
+        placeholder="Millenium View"></ion-input>
+    </ion-item>
+      
+  </div>   
+  <div padding text-center>
+    <ion-button type="submit" [disabled]="!eventForm.valid" expand="block">Save</ion-button>
+    <ion-button (click)="saveAndDuplicate()"  expand="block">Save & Duplicate</ion-button>
+    <ion-label  color="danger">{{message}}</ion-label>
+  </div>
+
+</form>
+
+
+
+</ion-content>

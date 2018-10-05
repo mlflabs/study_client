@@ -1,0 +1,68 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Admin</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+UNLESS YOU KNOW WHAT YOU ARE DOING PLEASE DONT USE THESE FEATURES
+
+
+<ion-item>
+  <ion-input  id="type"
+              name="content"
+              [(ngModel)]="item.type" 
+              type="text" 
+              placeholder="Type"></ion-input>
+</ion-item>
+
+<ion-item>
+  <ion-textarea 
+              id="body"
+              name="note"
+              [(ngModel)]="item.body" 
+              type="text" 
+              rows="6"
+              placeholder="Body"></ion-textarea>
+</ion-item>
+
+<div padding text-center>
+<ion-button (click)="execute()"  expand="block">Execute</ion-button>
+
+</div>
+
+<ion-item>
+  <ion-input  id="text"
+              name="text"
+              [(ngModel)]="test.text" 
+              type="text" 
+              required
+              placeholder="Text"></ion-input>
+</ion-item>
+
+<div padding text-center>
+<ion-button (click)="saveItem(item)" expand="block">Save</ion-button>
+
+<ion-list>
+  <ion-item *ngFor="let item of items" (click)="selectedTest(item)">
+      <strong>{{item.text}}</strong>
+    <div class="item-delete" slot="end">
+      <ion-button (click)="removeItem(item)" shape="round" color="danger" fill="outline">Remove</ion-button>
+    </div>
+  </ion-item>
+</ion-list>
+</div>
+
+<ion-item>
+  <ion-input  id="type"
+              name="content"
+              [(ngModel)]="item.type" 
+              type="text" 
+              placeholder="Type"></ion-input>
+</ion-item>
+<ion-button (click)="dropCollection()"  expand="block">Clear Collection</ion-button>
+
+
+
+
+</ion-content>

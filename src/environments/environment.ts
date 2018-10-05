@@ -9,6 +9,13 @@ export const environment = {
   service_events: 'events',
   service_groups: 'groups',
 
+  //blog
+  service_blogs: 'blog',
+  service_posts: 'posts',
+
+  collections: ['events', 'groups', 'blog', 'posts', 'test'],
+  //admin
+
 };
 
 /*

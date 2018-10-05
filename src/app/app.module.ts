@@ -15,10 +15,13 @@ import { AuthService } from './services/auth.service';
 import { AuthGuardService } from './services/auth-guard.service';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
+import { EditEventPage } from './pages/edit-event/edit-event.page';
 
 @NgModule({
-  declarations: [AppComponent],
-  entryComponents: [],
+  declarations: [
+    AppComponent,
+    EditEventPage],
+  entryComponents: [EditEventPage],
   imports: [
     BrowserModule,
     IonicModule.forRoot(),

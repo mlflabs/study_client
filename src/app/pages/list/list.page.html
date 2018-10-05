@@ -13,13 +13,18 @@
 
 <ion-content>
 
-    <div #timeline >
+    <div #timeline  (window:resize)="onResize($event)" >
         <div class="menu">
             <input type="button" id="zoomIn" value="Zoom in"/>
             <input type="button" id="zoomOut" value="Zoom out"/>
             <input type="button" id="moveLeft" value="Move left"/>
             <input type="button" id="moveRight" value="Move right"/>
             <input type="button" id="fitContents" value="Fit Contents"/>
+            <BR>
+            {{timelineStats.start}} <BR>
+            {{timelineStats.end}} <BR>
+            {{timelineStats.span}}<BR>
+            {{timelineStats.size}}
             <!--
               <input type="button" id="toggleRollingMode" value="toggleRollingMode"/>
             -->
@@ -39,6 +44,22 @@
             </ion-card-content>
           </ion-card>
     </ion-item>
+
+    <ion-item *ngIf="eventSelected" >
+        <ion-card>
+            <ion-card-header>
+              {{eventItem.content}} {{printGroupById(eventItem.group)}}
+              <ion-card-subtitle>{{printStartDate(eventItem)}} {{printEndDate(eventItem)}}</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              {{eventItem.note}}
+            </ion-card-content>
+            <ion-button (click)="onEditEventClick()" >Edit</ion-button>
+        </ion-card>
+    </ion-item>
+
+
+
     <ion-grid>
         <ion-row>
           <ion-col>
@@ -90,7 +111,7 @@
     <ion-grid>
         <ion-row>
           <ion-col>
-            <ion-item *ngIf="editingItem" >
+            <ion-item *ngIf="eventSelected" >
                 <ion-card>
                     <ion-card-header>
                       <ion-card-subtitle>Edit Item</ion-card-subtitle>
@@ -101,7 +122,7 @@
                                 <ion-input  id="content"
                                             name="content"
                                             #content="ngModel"
-                                            [(ngModel)]="item.content" 
+                                            [(ngModel)]="eventItem.content" 
                                             type="text" 
                                             required
                                             placeholder="Title - Required"></ion-input>
@@ -113,7 +134,7 @@
                                 <ion-input  id="start"
                                             name="start"
                                             #start="ngModel"
-                                            [(ngModel)]="item.start" 
+                                            [(ngModel)]="eventItem.start" 
                                             type="text" 
                                             required
                                             placeholder="Start Date - YYYY-MM-DD - Required"></ion-input>
@@ -127,7 +148,7 @@
                                 <ion-input  id="end"
                                             name="end"
                                             #email="ngModel"
-                                            [(ngModel)]="item.end" 
+                                            [(ngModel)]="eventItem.end" 
                                             type="text" 
                                             placeholder="End Date - YYYY-MM-DD - Optional"></ion-input>   
                             </ion-item>
@@ -137,7 +158,7 @@
                                     id="group"
                                     name="group"
                                     #group="ngModel"
-                                    [(ngModel)]="item.group" 
+                                    [(ngModel)]="eventItem.group" 
                                     ok-text="Select" 
                                     required
                                     cancel-text="Cancel"
@@ -157,7 +178,7 @@
                                 <ion-input  id="subgroup"
                                             name="subgroup"
                                             #subgroup="ngModel"
-                                            [(ngModel)]="item.subgroup" 
+                                            [(ngModel)]="eventItem.subgroup" 
                                             type="text" 
                                             placeholder="Sub-Group"></ion-input>
                                 <ion-label position="stacked" color="secondary">
@@ -168,7 +189,7 @@
                                 <ion-input  id="note"
                                             name="note"
                                             #note="ngModel"
-                                            [(ngModel)]="item.note" 
+                                            [(ngModel)]="eventItem.note" 
                                             type="text" 
                                             placeholder="Note"></ion-input>
                                 <ion-label position="stacked" color="secondary">

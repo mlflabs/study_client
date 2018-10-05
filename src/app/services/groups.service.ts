@@ -1,14 +1,14 @@
 import { Injectable } from '@angular/core';
-import { DocService } from './docs.service';
 import { environment } from '../../environments/environment';
 import { FeathersService } from './feathers.service';
+import { DocServiceAbstract } from './_docs.service';
 
 const ObjectID = require('bson-objectid');
 
 @Injectable({
   providedIn: 'root'
 })
-export class GroupsService extends DocService {
+export class GroupsService extends DocServiceAbstract {
 
   private _serviceName: string = environment.service_groups;
   private feathersService: any;

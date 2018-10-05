@@ -5,21 +5,39 @@ const ObjectID = require('bson-objectid');
 
 
 export class Doc {
-  _id?: string | number;
-  id?: string | number; //use this for graph and timeline, for now duplicate
+  id?: string; //use this for graph and timeline, for now duplicate
+  _id?: string;
   createdAt?: Date;
   updatedAt?: Date;
 
-  _newid?: boolean;
-  _removed?: boolean;
-  _dirty?: boolean;
+  meta_newid?: boolean;
+  meta_removed?: boolean;
+  meta_dirty?: boolean;
 
   constructor(values: Object = {}) {
 
     Object.assign(this, values);
   }
+}
 
+export class BlogItem extends Doc {
+  heading?: string;
+  slug?: string;
+  body?: string;
+}
 
+export class BlogComment extends Doc {
+  heading?: string;
+  slug?: string;
+  body?: string;
+  author?: string;
+
+  blog_id: string;
+}
+
+export class AppEvent extends Doc {
+  message?: string;
+  type?: string;
 }
 
 export class GroupItem extends Doc {
@@ -61,9 +79,19 @@ export class EventItem extends Doc {
   type?: 'box' | 'point' | 'range' | 'background';
   group?: string;
   subgroup?: string;
+  _nestedGroups?: [String];
+  nestedGroups?: [String];
 
   to:[Edge];
   from:[Edge];
+
+  viewDay?:string;  // = 1
+  viewWeek?: string; // 7
+  viewMonth?:string; // = 30
+  viewYear?: string; // = 365
+  viewDecade?: string; // = 3650
+  viewCentury?: string; //= 36500
+  viewMillenium?: string; // = 365000 days
 
   constructor(values: Object = {}) {
     super();

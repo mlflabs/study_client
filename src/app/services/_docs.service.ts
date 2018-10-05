@@ -3,11 +3,12 @@ import { Doc } from '../models/doc.model';
 import { Observable, Subject, BehaviorSubject, from, of, range } from 'rxjs';
 import { map, filter, switchMap } from 'rxjs/operators';
 import { saveIntoArray, generateShortUUID } from '../utils';
+// import { nSQL } from "nano-sql";
 
 
 // const  uniqid = require('uniqid');
 
-export abstract class DocService {
+export abstract class DocServiceAbstract {
 
   private dataStore: {
     docs: Doc[],
@@ -24,9 +25,10 @@ export abstract class DocService {
     this._lastModified = new BehaviorSubject(this.dataStore.lastModified);
   }
 
+
   getDoc(id: string): Doc {
     const d = this.dataStore.docs.find((doc) => {
-      if (doc._id === id) {
+      if (doc.id === id) {
         return true;
       }
       return false;
@@ -44,7 +46,7 @@ export abstract class DocService {
   getDocObservable(id: string): Observable<any> {
     return this._docs.asObservable().pipe(
       map(doc => {
-        return doc.find(d => d._id === id);
+        return doc.find(d => d.id === id);
       })
     );
   }
@@ -58,13 +60,13 @@ export abstract class DocService {
   }
 
   _filterDeleted() {
-    this.dataStore.docs = this.dataStore.docs.filter(d => d._removed !== true);
+    this.dataStore.docs = this.dataStore.docs.filter(d => d.meta_removed !== true);
     this._docs.next(this.dataStore.docs);
   }
 
   _remove(doc): Doc {
     this.dataStore.docs = saveIntoArray(doc, this.dataStore.docs);
-    this.dataStore.docs = this.dataStore.docs.filter(d => d._removed !== true);
+    this.dataStore.docs = this.dataStore.docs.filter(d => d.meta_removed !== true);
     this._docs.next(this.dataStore.docs);
     this.dataStore.lastModified = doc;
     this._lastModified.next(this.dataStore.lastModified);
@@ -84,7 +86,7 @@ export abstract class DocService {
   }
 
   _loadAllDocs(docs: Doc[]) {
-    this.dataStore.docs = docs.filter(d => d._removed !== true);
+    this.dataStore.docs = docs.filter(d => d.meta_removed !== true);
     this._docs.next(this.dataStore.docs);
   }
 

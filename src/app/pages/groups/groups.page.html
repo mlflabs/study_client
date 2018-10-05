@@ -41,10 +41,6 @@
                         placeholder="Color"></ion-input>
         </ion-item>
       <div padding text-center>
-        <ion-spinner slot="middle" 
-          name="dots" 
-          color="primary" 
-          *ngIf="isLoading" ></ion-spinner>
         <ion-button type="submit" 
                     size="large" 
                     [disabled]="!form.valid" 

@@ -23,13 +23,19 @@ export class FeathersService {
     // this._feathers.configure(feathersRx({             // add feathers-reactive plugin
     //  idField: '_id'
     // }));
-    this._feathers.configure(socketio(this._socket), { timeout: 2000 }); // add socket.io plugin
+    this._feathers.configure(socketio(this._socket), { timeout: 5000 }); // add socket.io plugin
     this._feathers.configure(authentication({ storage: localStorage }));
   }
 
   public getService(name: string) {
     return this._feathers.service(name);
   }
+
+  /*
+  public getFeathers(){
+    return this._feathers;
+  }
+  */
 
   // expose authentication
   public async authenticate(credentials?): Promise<any> {
