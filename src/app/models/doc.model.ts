@@ -45,6 +45,8 @@ export class GroupItem extends Doc {
   color?: string;
   visible?: boolean;
 
+  events?: [EventItem];//temp storage of groups
+
   constructor(values: Object = {}) {
     super();
     Object.assign(this, values);
@@ -85,17 +87,51 @@ export class EventItem extends Doc {
   to:[Edge];
   from:[Edge];
 
-  viewDay?:string;  // = 1
-  viewWeek?: string; // 7
-  viewMonth?:string; // = 30
-  viewYear?: string; // = 365
-  viewDecade?: string; // = 3650
-  viewCentury?: string; //= 36500
-  viewMillenium?: string; // = 365000 days
+  viewDayLabel?:string; 
+  viewWeekLabel?: string;
+  viewMonthLabel?:string;
+  viewYearLabel?: string;
+  viewDecadeLabel?: string;
+  viewCenturyLabel?: string;
+  viewMilleniumLabel?: string;
+  view5MilleniumLabel?: string;
+  viewDayHide?:boolean;  // = 1
+  viewWeekHide?: boolean; // 7
+  viewMonthHide?:boolean; // = 30
+  viewYearHide?: boolean; // = 365
+  viewDecadeHide?: boolean; // = 3650
+  viewCenturyHide?: boolean; //= 36500
+  viewMilleniumHide?: boolean; // = 365000 days
+  view5MilleniumHide?: boolean; // = 365000 days
 
   constructor(values: Object = {}) {
     super();
     Object.assign(this, values);
   }
-
 }
+
+export const RANGE_LEVELS = [{
+  days: 1825000,
+  type: 'view5Millenium'
+},{
+  days: 365000,
+  type: 'viewMillenium'
+},{
+  days: 36500,
+  type: 'viewCentury'
+},{
+  days: 3650,
+  type: 'viewDecade'
+},{
+  days: 365,
+  type: 'viewYear'
+},{
+  days: 30,
+  type: 'viewMonth'
+},{
+  days: 7,
+  type: 'viewWeek'
+},{
+  days: 1,
+  type: 'viewDay'
+}];

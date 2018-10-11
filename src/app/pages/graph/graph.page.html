@@ -1,0 +1,93 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Graphs</ion-title>
+    <ion-buttons slot="end">
+        <ion-button (click)="searchGraphModal()">  
+            <ion-icon slot="icon-only" name="add-circle"></ion-icon>
+          </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+    <ion-grid>
+        <ion-row>
+          <ion-col>
+              <app-graphs
+                [nodes]="nodes"
+                (nodeClicked)="onNodeClicked($event)"
+                (nodeDoubleClicked)="onNodeDoubleClicked($event)"></app-graphs>
+          </ion-col>
+          <ion-col  size="auto">
+              <ion-item>
+                  <ion-card>
+                      <ion-card-header>
+                        <ion-card-subtitle>Add Item to Graph</ion-card-subtitle>
+                      </ion-card-header>
+                        <ion-card-content>
+                            <ion-item>
+                                <ion-input  id="search"
+                                            [(ngModel)]="search_term"
+                                            debounce="300"
+                                            clearInput="true"
+                                            type="text" 
+                                            (ionChange)="onSearchChange()"
+                                            placeholder="Search"
+                                            ></ion-input>
+                            </ion-item>
+            
+                            <ion-list>
+                                <ion-item (click)="searchItemSelected(item)" *ngFor="let item of searchItems">
+                                  {{item.content}}
+                                </ion-item>
+                            </ion-list>
+            
+                      </ion-card-content>
+
+                      <ion-item *ngIf="edge" >
+                          <ion-card>
+                              <ion-card-header>
+                                <ion-card-subtitle>Edit Connection</ion-card-subtitle>
+                                From: {{edge.from}} -- To: {{edge.to}}
+                              </ion-card-header>
+                                <ion-card-content>
+                                  <form (ngSubmit)="onSubmitEdge()" #edgeForm="ngForm">
+                                      <ion-item>
+                                          <ion-input  name="label"
+                                                      [(ngModel)]="edge.label" 
+                                                      type="text" 
+                                                      placeholder="Label"></ion-input>
+                                      </ion-item>
+                                      <ion-chip>
+                                          <ion-label>Dashes: </ion-label>
+                                          <ion-toggle 
+                                            name="dashes"
+                                            [(ngModel)]="edge.dashes"  
+                                            color="secondary"></ion-toggle>
+                                      </ion-chip>
+                                      <ion-item>
+                                          <ion-textarea 
+                                            name="note"
+                                            [(ngModel)]="edge.note" 
+                                            placeholder="Notes - Best to include reference"></ion-textarea>
+                                      </ion-item>
+                                    <div padding text-center>
+                                       <ion-button type="submit" size="large" [disabled]="!edgeForm.valid" expand="block">Save</ion-button>
+                                       <ion-button type="submit" size="large" color="danger" expand="block">Remove</ion-button>
+                                    </div>
+                                </form>
+                              </ion-card-content>
+                          </ion-card>
+                      </ion-item>
+                  </ion-card>
+              </ion-item>
+
+
+          </ion-col>
+        </ion-row>
+    </ion-grid>
+    
+</ion-content>

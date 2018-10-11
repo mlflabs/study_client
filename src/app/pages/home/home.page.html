@@ -4,13 +4,20 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>
-      Home
+      MLF Labs
     </ion-title>
   </ion-toolbar>
 </ion-header>
 
 <ion-content padding>
-  The world is your oyster.
-  <p>If you get lost, the
-    <a target="_blank" rel="noopener" href="https://ionicframework.com/docs">docs</a> will be your guide.</p>
+  <p>MLF Labs - BETA</p>
+
+  <ion-button [routerDirection]="'root'" [routerLink]="'/list'" expand="block">Timeline</ion-button>
+  <ion-button [routerDirection]="'root'" [routerLink]="'/graph'" expand="block">Graphs</ion-button>
+  <ion-button [routerDirection]="'root'" [routerLink]="'/groups'" expand="block">Groups</ion-button>
+
+
+
+  <ion-button [routerDirection]="'root'" [routerLink]="'/private/user'" expand="block">User</ion-button>
 </ion-content>
+ 

@@ -3,9 +3,11 @@ import { Platform } from '@ionic/angular';
 import { BehaviorSubject } from 'rxjs';
 import { Storage } from '@ionic/storage';
 import { FeathersService } from './feathers.service';
-import { create } from 'domain';
+import * as moment from 'moment';
+import { environment } from '../../environments/environment';
 
 const TOKEN_KEY = 'auth-token';
+const TOKEN_EXP = 'auth-token-exp';
 const USER_KEY = 'auth-user';
 
 export interface AuthEvent {
@@ -44,6 +46,7 @@ export class AuthService {
     private storage: Storage,
     private plt: Platform) {
     this.plt.ready().then(() => {
+      this.checkLogin();
       this.loginJWT();
     });
 
@@ -56,12 +59,33 @@ export class AuthService {
     return u.name;
   }
 
+  async checkLogin(){
+    try{
+      const user = await this.storage.get(USER_KEY);
+      console.log('LOADED UER', user);
+
+      const exp = moment(user.createdAt).add(environment.token_expiery, 'days');
+      if(exp.isAfter(moment.now())){
+        //token still active
+        this.isAuthenticated.next(true);
+        this.user.next(user);
+        return user;
+      }
+      return false;
+    }
+    catch(e){
+      console.log(e);
+      return false;
+    }
+  }
 
   async loginJWT(token: string = null) {
     try {
       if (token === null) {
         token = await this.storage.get(TOKEN_KEY);
       }
+
+      console.log('Got Token, lets see if its expired');
 
       const res = await this.feathers.authenticate({
         strategy: 'jwt',
@@ -100,6 +124,7 @@ export class AuthService {
     let user = await this.storage.get(USER_KEY);
     if (forceRefresh || !user) {
       user = await this.feathers.getUser(token);
+      console.log('Saving User: ', user);
       await this.storage.set(USER_KEY, user);
     }
     await this.storage.set(TOKEN_KEY, token);

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { DocService, DOC_CHANGES_STREM } from '../../../services/doc.service';
+import { DocService, DOC_LOCAL_CHANGES_STREM } from '../../../services/doc.service';
 
 @Component({
   selector: 'app-orm',
@@ -31,7 +31,7 @@ export class OrmPage implements OnInit, OnDestroy {
 
     this.items = await this.docService.getAllDocs('test');
     
-    const changes = await this.docService.getAllDocs(DOC_CHANGES_STREM);
+    const changes = await this.docService.getAllDocs(DOC_LOCAL_CHANGES_STREM);
     console.log('CHANGES: ', changes);
 
 
@@ -67,5 +67,9 @@ export class OrmPage implements OnInit, OnDestroy {
 
   dropCollection(){
     this.docService._dropCollection(this.item.type);
+  }
+
+  dropAll(){
+    this.docService._dropCollection('all');
   }
 }

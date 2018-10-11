@@ -29,6 +29,12 @@ export class AppComponent {
       auth : true
     },
     {
+      title: 'Graph',
+      url: '/graph',
+      icon: 'git-network',
+      auth : true
+    },
+    {
       title: 'Groups',
       url: '/groups',
       icon: 'logo-buffer',

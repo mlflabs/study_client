@@ -2,6 +2,9 @@
   <ion-toolbar>
     <ion-title>{{printStatus()}}</ion-title>
   </ion-toolbar>
+  <ion-buttons slot="end">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
 </ion-header>
 
 <ion-content padding>
@@ -16,7 +19,7 @@
 
 
   <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
-    <div *ngIf="view === 'main'" >
+    <div [hidden]="view !== 'main'" >
     <ion-item>
         <ion-input  id="content"
                     name="content"
@@ -100,57 +103,114 @@
   </div>
 
   <!-- Date Range View -->
-  <div  *ngIf="view === 'ranges'" >
-    <ion-item>
-        <ion-input  
-        name="viewDay"
-        [(ngModel)]="item.viewDay" 
-        type="text" 
-        placeholder="Day View"></ion-input>
-    </ion-item>
-    <ion-item>
-        <ion-input  
-        name="viewWeek"
-        [(ngModel)]="item.viewWeek" 
-        type="text" 
-        placeholder="Week View"></ion-input>
-    </ion-item>
-    <ion-item>
-        <ion-input  
-        name="viewMonth"
-        [(ngModel)]="item.viewMonth" 
-        type="text" 
-        placeholder="Month View"></ion-input>
-    </ion-item>
-    <ion-item>
-        <ion-input  
-        name="viewYear"
-        [(ngModel)]="item.viewYear" 
-        type="text" 
-        placeholder="Year View"></ion-input>
-    </ion-item>
-    <ion-item>
-        <ion-input  
-        name="viewDecade"
-        [(ngModel)]="item.viewDecade" 
-        type="text" 
-        placeholder="Decade View"></ion-input>
-    </ion-item>
-    <ion-item>
-        <ion-input  
-        name="viewCentury"
-        [(ngModel)]="item.viewCentury" 
-        type="text" 
-        placeholder="Century View"></ion-input>
-    </ion-item>
-    <ion-item>
-        <ion-input  
-        name="viewMillenium"
-        [(ngModel)]="item.viewMillenium" 
-        type="text" 
-        placeholder="Millenium View"></ion-input>
-    </ion-item>
-      
+  <div  [hidden]="view !== 'ranges'" >
+      <ion-grid>
+          <ion-row>
+            <ion-col>
+              <ion-label>Display Label</ion-label>
+            </ion-col>
+            <ion-col  size="auto">
+                <ion-label  >Hide</ion-label>
+            </ion-col>
+          </ion-row>
+          <ion-row>
+              <ion-col>
+                  <ion-input  
+                  name="viewDayLabel"
+                  [(ngModel)]="item.viewDayLabel" 
+                  type="text" 
+                  placeholder="Day View"></ion-input>
+              </ion-col>
+              <ion-col size="auto">
+                  <ion-checkbox color="secondary"   [(ngModel)]="item.viewDayHide" name="viewDayHide"  ></ion-checkbox>
+              </ion-col>
+            </ion-row>
+            <ion-row>
+                <ion-col>
+                    <ion-input  
+                    name="viewWeekLabel"
+                    [(ngModel)]="item.viewWeekLabel" 
+                    type="text" 
+                    placeholder="Week View"></ion-input>
+                </ion-col>
+                <ion-col size="auto">
+                    <ion-checkbox color="secondary" [(ngModel)]="item.viewWeekHide" name="viewWeekHide"  ></ion-checkbox>
+                </ion-col>
+              </ion-row>
+              <ion-row>
+                  <ion-col>
+                      <ion-input  
+                      name="viewMonthLabel"
+                      [(ngModel)]="item.viewMonthLabel" 
+                      type="text" 
+                      placeholder="Month View"></ion-input>
+                  </ion-col>
+                  <ion-col size="auto">
+                      <ion-checkbox color="secondary"  [(ngModel)]="item.viewMonthHide" name="viewMonthHide" ></ion-checkbox>
+                  </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col>
+                        <ion-input  
+                        name="viewYearLabel"
+                        [(ngModel)]="item.viewYearLabel" 
+                        type="text" 
+                        placeholder="Year View"></ion-input>
+                    </ion-col>
+                    <ion-col size="auto">
+                        <ion-checkbox color="secondary"  [(ngModel)]="item.viewYearHide"  name="viewYearHideHide"></ion-checkbox>
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col>
+                        <ion-input  
+                        name="viewDecadeLabel"
+                        [(ngModel)]="item.viewDecadeLabel" 
+                        type="text" 
+                        placeholder="Decade View"></ion-input>
+                    </ion-col>
+                    <ion-col  size="auto">
+                        <ion-checkbox color="secondary"  [(ngModel)]="item.viewDecadeHide"  name="viewDecadeHideHide"></ion-checkbox>
+                    </ion-col>
+                </ion-row>
+
+                <ion-row>
+                    <ion-col>
+                        <ion-input  
+                        name="viewCenturyLabel"
+                        [(ngModel)]="item.viewCenturyLabel" 
+                        type="text" 
+                        placeholder="Century View"></ion-input>
+                    </ion-col>
+                    <ion-col size="auto">
+                        <ion-checkbox color="secondary" [(ngModel)]="item.viewCenturyHide" name="viewCenturyHide" ></ion-checkbox>
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col>
+                        <ion-input  
+                        name="viewMilleniumLabel"
+                        [(ngModel)]="item.viewMilleniumLabel" 
+                        type="text" 
+                        placeholder="Millenium View"></ion-input>
+                    </ion-col>
+                    <ion-col size="auto">
+                        <ion-checkbox color="secondary"  [(ngModel)]="item.viewMilleniumHide"  name="viewMilleniumHide"></ion-checkbox>
+                    </ion-col>
+                </ion-row>
+                <ion-row>
+                    <ion-col>
+                        <ion-input  
+                        name="view5MilleniumLabel"
+                        [(ngModel)]="item.view5MilleniumLabel" 
+                        type="text" 
+                        placeholder="5 Millenium View"></ion-input>
+                    </ion-col>
+                    <ion-col size="auto">
+                        <ion-checkbox color="secondary"  [(ngModel)]="item.view5MilleniumHide"  name="view5MilleniumHide"></ion-checkbox>
+                    </ion-col>
+                </ion-row>
+        </ion-grid>
   </div>   
   <div padding text-center>
     <ion-button type="submit" [disabled]="!eventForm.valid" expand="block">Save</ion-button>

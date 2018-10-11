@@ -1,23 +1,21 @@
-import { Injectable, EventEmitter } from '@angular/core';
-import { Doc } from '../models/doc.model';
-import { Observable, Observer, Subject, BehaviorSubject, from, of, range, fromEvent, observable } from 'rxjs';
-import { map, filter, switchMap } from 'rxjs/operators';
+import { Injectable } from '@angular/core';
+import { Observable, Subject, fromEvent } from 'rxjs';
+import { map, debounceTime } from 'rxjs/operators';
 import { environment } from '../../environments/environment';
 import { nSQL } from 'nano-sql';
 import { FeathersService } from './feathers.service';
-import { nsend, timeout } from '../../../node_modules/@types/q';
 const ObjectID = require('bson-objectid');
 import { isEqual } from 'lodash';
 import { diff } from 'deep-diff';
-const equal = require('fast-deep-equal');
-import { deepCompare } from '../utils';
 import { AuthService } from './auth.service';
 
 
-export const DOC_CHANGES_STREM = 'changes_stream';
+export const DOC_LOCAL_CHANGES_STREM = 'change-feed';
+
 export const _COLLECTION_DELETED_SUFIX = '_deleted';
 export const EVENT_SERVICE = 'events';
 export const GROUP_SERVICE = 'groups';
+export const SETTINGS_SERVICE = 'settings';
 
 // const  uniqid = require('uniqid');
 export interface ServerEvent {
@@ -54,10 +52,7 @@ export  class DocService {
       //setup database
       nSQL(environment.collections[i])
         .model([
-          { key: 'id', type: 'string', props: ['pk'] },
-          { key: 'meta_newid', type: 'bool', default: false },
-          { key: 'meta_removed', type: 'bool', default: false },
-          { key: 'meta_dirty', type: 'bool', default: false },
+          { key: 'id', type: 'timeIdms', props: ['pk'] },
           { key: '*', type: '*'}
         ]).config({
           mode: 'PERM' // autodetect best method and persist data.
@@ -70,13 +65,23 @@ export  class DocService {
         ]).config({
           mode: 'PERM' // autodetect best method and persist data.
         });
-
-        nSQL(environment.collections[i]).on('change', rec =>{
-          console.log('OnChange: ', environment.collections[i], rec);
-        });
     }
 
-    nSQL(DOC_CHANGES_STREM)
+    nSQL(DOC_LOCAL_CHANGES_STREM)
+        .model([ //lets hold all unsaved docs here
+          { key: 'id', type: 'string', props: ['pk'] },
+          { key: '*', type: '*' }
+        ])
+        .config({
+          mode: 'PERM' // autodetect best method and persist data.
+        })
+        .connect().then(() =>{
+          //now that we are fully connected, lets see if we have some
+          //outstanding changes
+          
+        });
+
+    nSQL(SETTINGS_SERVICE)
         .model([ //lets hold all unsaved docs here
           { key: 'id', type: 'string', props: ['pk'] },
           { key: '*', type: '*' }
@@ -89,11 +94,7 @@ export  class DocService {
           //outstanding changes
           this.ServerSync();
           
-        });
-
-      this.getAllDocs('groups', true);
-      this.getAllDocs('events', true);
-      
+        });     
   }
 
 
@@ -101,30 +102,40 @@ export  class DocService {
   //TODO: Here we might want to first check if we are connected
   //do this test on mobile devices, and apps
   async ServerSync(){
-    //await this.SyncToServer();
-    //await this.SyncFromServer();
+    await this.SyncFromServer();
+    await this.SyncToServers();
   }
 
-  async SyncToServer(){
-    const changes = await nSQL(DOC_CHANGES_STREM).query('select').exec();
-    console.log('Changes to update: ', changes);  
+  async SyncToServers(){
+    const changes = await nSQL(DOC_LOCAL_CHANGES_STREM).query('select').exec();
+    console.log('####### Changes to update: ', changes);  
 
     for(let i=0;i<changes.length;i++){
-      const col = (changes[i].action === 'saved')?changes[i].collection:changes[i].collection+'_deleted';
       await this._server_save(changes[i].doc, changes[i].collection);
     }
   }
 
   async SyncFromServer(){
+    environment.sync_collections.forEach(async collection => {
+      const changelog = await this.getDocById(collection+'_lastChange', 
+                            SETTINGS_SERVICE);
 
+      
+      console.log('SyncFromServer: ', changelog);
+      if(changelog) {
+        await this._serverLoadCollection(collection, changelog.date);
+      }
+      else {
+        await this._serverLoadCollection(collection);
+      }
+
+    });
   }
+
 
   subscribeChanges(collection:string): Observable<any> {
     return fromEvent(nSQL(collection), 'change').pipe(
-      /*filter(event => {
-        console.log('Subscribe to changes...', event);
-        return event[0]['affectedRows'].length > 0;
-      }),*/
+      debounceTime(1000),
       map(event => {
         console.log('subscribe ', event);
         if(event[0]['affectedRows'])
@@ -134,30 +145,35 @@ export  class DocService {
   }
 
   async getDocById(id: string, collection: string): Promise<any> {
-
     const doc = await nSQL(collection).query('select')
       .where(['id','=',id]).exec();
-
     console.log('GetDoc: ', id, collection, doc);
     return doc[0];
-
   }
 
   async getAllDocs(collection, serverRefreshForce = false){
     const docs = await nSQL(collection).query('select').exec();
 
+    console.log('GetAllDocs:::: ', collection, docs);
     if(serverRefreshForce){
       this._serverLoadCollection(collection);
     }
-
     return docs;
   }
 
-  async getByQuery(field, operator, value, collection){
+  async getByQuery(field, operator, value, collection): Promise<any>{
     const doc = await nSQL(collection).query('select')
       .where([field, operator, value ]).exec();
 
     console.log('GetDoc: ', field, operator,value, collection, doc);
+    return doc;
+  }
+
+  async searchByField(value, field, collection, limit=20): Promise<any>{
+    const doc = await nSQL(collection).query('select')
+      .where([field, 'LIKE', value ]).limit(limit).exec();
+
+    console.log('Search Docs: ', collection, field, limit, value, doc);
     return doc;
   }
 
@@ -181,13 +197,13 @@ export  class DocService {
       //lets see if there are actual changes
       const changes = diff(doc, old);
 
-      console.log('ARE THERE CHANGES: ', changes);
+      //console.log('ARE THERE CHANGES: ', changes);
       if(isEqual(old, doc)){
-        console.log('NO Changes');
+        //console.log('NO Changes');
         return doc;
       }
       else {
-        console.log('YES Changes');
+        //console.log('YES Changes');
         //lets make it dirty
         doc.meta_dirty = true;
       }
@@ -195,20 +211,30 @@ export  class DocService {
     }
     const result = await nSQL(collection).query('upsert', doc).exec();
 
+    console.log('Save 1 Results: ', result);
+
     //since this is a new change, put into change stream, 
-    await nSQL(DOC_CHANGES_STREM)
-      .query('upsert', { id: doc.id, 
-                         collection: collection, 
-                         isDelete: doc.meta_removed,
-                         action: 'saved',
-                         doc: doc,
-                        }).exec();
-    const localDoc = result[0]['affectedRows'][0];
+    if(environment.collections.includes(collection)){
 
-    await this._server_save(localDoc, collection);
+      if(environment.sync_collections.includes(collection)){
+        //only add to stream if its a sync collection
+        await nSQL(DOC_LOCAL_CHANGES_STREM)
+          .query('upsert', { id: doc.id, 
+                            collection: collection, 
+                            isDelete: doc.meta_removed,
+                            action: 'saved',
+                            doc: doc,
+                            }).exec();
+      }
+      const localDoc = result[0]['affectedRows'][0];
 
-    console.log('Saved, localdoc: ', localDoc);
-    return localDoc;
+      await this._server_save(localDoc, collection);
+
+      console.log('Saved, localdoc: ', localDoc);
+      return localDoc;
+    }
+
+    return result[0]['affectedRows'][0];
   }
 
   async delete(doc, collection) {
@@ -221,7 +247,7 @@ export  class DocService {
     //first same as deleted, so subscriptions know that its gone, then remove it
     await nSQL(collection).query('upsert', doc).exec();
     await nSQL(collection).query('delete').where(['id','=',doc.id]).exec();
-    await nSQL(DOC_CHANGES_STREM)
+    await nSQL(DOC_LOCAL_CHANGES_STREM)
       .query('upsert', { id: doc.id, collection: collection, action: 'deleted'})
       .exec();
 
@@ -232,6 +258,11 @@ export  class DocService {
 
   async _server_save(doc, collection){
     try{
+
+      //first filter private collections
+      if(collection === SETTINGS_SERVICE)
+        return false;
+
       console.log('Preparing for save: ', collection);
       if(doc.meta_newid){
         console.log('Saving to Server');
@@ -264,15 +295,16 @@ export  class DocService {
     //now we have to see if its a deleted doc or not
     if(doc.meta_removed){
       const result = await nSQL(collection+'_deleted').query('upsert', doc).exec();
-      //console.log('LOADED DELETED DOC: ', result[0]['affectedRows']);
+      console.log('LOADED DELETED DOC: ', collection+'_deleted', result[0]['affectedRows']);
     }
     else {
       const result = await nSQL(collection).query('upsert', doc).exec();
-      //console.log('LOADED DOC: ', result[0]['affectedRows']);
+      //console.log('Server to Local Save: ', collection, result);
+      console.log('LOADED DOC: ', collection, result[0]['affectedRows']);
     }
 
     //also need to remove this item from change feed
-    await nSQL(DOC_CHANGES_STREM)
+    await nSQL(DOC_LOCAL_CHANGES_STREM)
       .query('delete').where(['id','=',doc.id]).exec();
     
   }
@@ -283,26 +315,41 @@ export  class DocService {
     return doc;
   }
 
-  async _serverLoadCollection(collection) {
+  async _serverLoadCollection(collection, lastUpdateDate=null) {
       try {
         console.log('Server Load: ', collection);
-        const docs = await this.feathersService[collection].find({
-          query: {
-            $limit: 10000,
-          }
-        });
+        let docs;
+        if(lastUpdateDate){
+          docs = await this.feathersService[collection].find({
+            query: { 
+              $limit: 10000,
+              $sort: {
+                _id: -1
+              },
+              updatedAt: {
+                $gt: lastUpdateDate - 500 //take out 500 millseconds, give buffer for missed docs
+              }
+            } 
+          });
+        }
+        else {
+          docs = await this.feathersService[collection].find({
+            query: { $limit: 10000 } 
+          });
 
-        //successfully loaded all docs for collection
-        //lets drop local copy, and load new data
-        await this._dropCollection(collection);
-        await this._dropCollection(collection+_COLLECTION_DELETED_SUFIX);
+          await this._dropCollection(collection);
+          await this._dropCollection(collection+_COLLECTION_DELETED_SUFIX);
+        }
+
+        if(docs.date)
+          await this.save({id: collection+'_lastChange', 
+                          date: docs.date},
+                          SETTINGS_SERVICE);
+        
         console.log('Loading all docs::::', docs);
         
         await docs.data.forEach( async d => {
-          //save to local db
-          //console.log('_serverLoadCollection Adding doc: ', collection, d);
-          this._server_onLoadDataFromServer(d, collection);
-
+          await this._server_onLoadDataFromServer(d, collection);
         });
 
         console.log('Added '+docs.data.length+' docs to::::: '+ collection);
@@ -316,6 +363,10 @@ export  class DocService {
       environment.collections.forEach( async col =>{
         await nSQL(col).query('drop').exec();
       });
+
+      //drop settings and change feed
+      await nSQL(SETTINGS_SERVICE).query('drop').exec();
+      await nSQL(DOC_LOCAL_CHANGES_STREM).query('drop').exec();
     }
     else {
       //await nSQL(collection).query('drop').exec();

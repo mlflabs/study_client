@@ -4,7 +4,7 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
     <ion-title>
-      List
+      Timeline
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -13,23 +13,11 @@
 
 <ion-content>
 
-    <div #timeline  (window:resize)="onResize($event)" >
-        <div class="menu">
-            <input type="button" id="zoomIn" value="Zoom in"/>
-            <input type="button" id="zoomOut" value="Zoom out"/>
-            <input type="button" id="moveLeft" value="Move left"/>
-            <input type="button" id="moveRight" value="Move right"/>
-            <input type="button" id="fitContents" value="Fit Contents"/>
-            <BR>
-            {{timelineStats.start}} <BR>
-            {{timelineStats.end}} <BR>
-            {{timelineStats.span}}<BR>
-            {{timelineStats.size}}
-            <!--
-              <input type="button" id="toggleRollingMode" value="toggleRollingMode"/>
-            -->
-        </div>
-    </div>
+    <app-timeline (eventClicked)="onEventClicked($event)"
+                  (eventDoubleClicked)="onEventDoubleClicked($event)"
+                  (eventDiselected)="onEventDiselected($event)"
+                  (eventAdded)="onEventAdded($event)" 
+                  [groups]="visible_groups" ></app-timeline>
 
     <ion-item>
         <ion-card>
@@ -45,6 +33,7 @@
           </ion-card>
     </ion-item>
 
+    <!--
     <ion-item *ngIf="eventSelected" >
         <ion-card>
             <ion-card-header>
@@ -57,9 +46,9 @@
             <ion-button (click)="onEditEventClick()" >Edit</ion-button>
         </ion-card>
     </ion-item>
+    -->
 
-
-
+    <!--
     <ion-grid>
         <ion-row>
           <ion-col>
@@ -77,6 +66,7 @@
                 </ion-card-content>
               </ion-card>
           </ion-col>
+          
           <ion-col>
               <ion-item>
                   <ion-card>
@@ -107,7 +97,10 @@
           </ion-col>
         </ion-row>
     </ion-grid>
+
+    -->
     
+    <!--
     <ion-grid>
         <ion-row>
           <ion-col>
@@ -117,7 +110,7 @@
                       <ion-card-subtitle>Edit Item</ion-card-subtitle>
                     </ion-card-header>
                       <ion-card-content>
-                        <form (ngSubmit)="onSubmit()" #eventForm="ngForm">
+                        <form (ngSubmit)="saveEvent()" #eventForm="ngForm">
                             <ion-item>
                                 <ion-input  id="content"
                                             name="content"
@@ -248,6 +241,7 @@
           </ion-col>
         </ion-row>
       </ion-grid>
+-->
     
 <!--
   <ion-list>

@@ -1,0 +1,13 @@
+<div #timeline  (window:resize)="onResize($event)" >
+    <div class="menu">
+        <input type="button" id="zoomIn" value="Zoom in"/>
+        <input type="button" id="zoomOut" value="Zoom out"/>
+        <input type="button" id="moveLeft" value="Left"/>
+        <input type="button" id="moveRight" value="Right"/>
+        <input type="button" id="fitContents" value="Fit"/>
+        {{printStats()}}
+        <!--
+          <input type="button" id="toggleRollingMode" value="toggleRollingMode"/>
+        -->
+    </div>
+</div>
