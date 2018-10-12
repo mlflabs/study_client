@@ -9,7 +9,7 @@ import { DocService, DOC_LOCAL_CHANGES_STREM } from '../../../services/doc.servi
 export class OrmPage implements OnInit, OnDestroy {
 
   public items = [];
-  test = {};
+  test;
 
   public item = {
     type:'',

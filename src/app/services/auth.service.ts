@@ -1,28 +1,16 @@
 import { Injectable } from '@angular/core';
-import { Platform } from '@ionic/angular';
-import { BehaviorSubject } from 'rxjs';
+import { Platform, Tab } from '@ionic/angular';
+import { BehaviorSubject, throwError } from 'rxjs';
 import { Storage } from '@ionic/storage';
-import { FeathersService } from './feathers.service';
+import { FeathersService, AuthEvent, createAuthEvent } from './feathers.service';
 import * as moment from 'moment';
 import { environment } from '../../environments/environment';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { catchError, retry, tap, map } from '../../../node_modules/rxjs/operators';
 
 const TOKEN_KEY = 'auth-token';
 const TOKEN_EXP = 'auth-token-exp';
 const USER_KEY = 'auth-user';
-
-export interface AuthEvent {
-  success: boolean;
-  code: number;
-  data: any;
-}
-
-export function createAuthEvent(success: boolean = true,
-  code = 1,
-  data = {}): AuthEvent {
-  return {
-    success, code, data
-  };
-}
 
 export interface UserModel {
   name?: string;
@@ -46,8 +34,8 @@ export class AuthService {
     private storage: Storage,
     private plt: Platform) {
     this.plt.ready().then(() => {
-      this.checkLogin();
-      this.loginJWT();
+      if(this.checkLogin())
+        this.loginJWT();//renew token only if we have saved credentials
     });
 
     this.isAuthenticated.next(false);
@@ -62,6 +50,17 @@ export class AuthService {
   async checkLogin(){
     try{
       const user = await this.storage.get(USER_KEY);
+      if(!user){
+        this.logout();
+        return;
+      }
+
+      const token = await this.storage.get(TOKEN_KEY);
+      if(!token){
+        this.logout();
+        return;
+      }
+
       console.log('LOADED UER', user);
 
       const exp = moment(user.createdAt).add(environment.token_expiery, 'days');
@@ -83,18 +82,28 @@ export class AuthService {
     try {
       if (token === null) {
         token = await this.storage.get(TOKEN_KEY);
+        if(!token){
+          //we have no token, lets just logout and request a login
+          await this.logout();
+          return;
+        }
       }
 
       console.log('Got Token, lets see if its expired');
 
-      const res = await this.feathers.authenticate({
-        strategy: 'jwt',
-        accessToken: token
-      });
+      const authEvent:AuthEvent = await this.feathers.renewJWT(token);
 
-      const user = await this.saveCredentials(res.accessToken);
+      if(authEvent.success){
+        const user = await this.saveCredentials(authEvent.data);
+      }
+      else{
+        console.log('Failed to renew token:: ', authEvent);
+        //await this.logout();
+      }
 
-      console.log('Successful JWT login: ', user);
+      ///const user = await this.saveCredentials(res.accessToken);
+
+      //console.log('Successful JWT login: ', user);
     } catch (err) {
       console.log(err);
     }
@@ -102,30 +111,32 @@ export class AuthService {
 
 
 
-  async login(email: string, password: string, strategy: string = 'local') {
-    try {
-      const token = await this.feathers.authenticate({
-        email: email,
-        password: password,
-        strategy: strategy
-      });
-      const user = await this.saveCredentials(token.accessToken, true);
+  async login(email: string, password: string, strategy: string = 'local'): Promise<AuthEvent> {
+      const tokenEvent:AuthEvent = await this.feathers.login(email, password, 'local');
 
-      return createAuthEvent(true, 200, user);
-    } catch (err) {
-      console.log(err);
-      return createAuthEvent(false, err.code, err);
-      // TODO, need to figure out what error codes we will receive
-    }
-
+      if(tokenEvent.success){
+        const user = await this.saveCredentials(tokenEvent.data, true);
+        console.log('user::: ', user);
+        return createAuthEvent(true, 1, user);
+      }
+      else {
+        console.log('Error auth::: ', tokenEvent);
+        return tokenEvent;
+      }
   }
 
   async saveCredentials(token: string, forceRefresh = false) {
     let user = await this.storage.get(USER_KEY);
     if (forceRefresh || !user) {
       user = await this.feathers.getUser(token);
-      console.log('Saving User: ', user);
-      await this.storage.set(USER_KEY, user);
+      if(user){
+        console.log('Saving User: ', user);
+        await this.storage.set(USER_KEY, user);
+      }
+      else {
+        return false;
+      }
+      
     }
     await this.storage.set(TOKEN_KEY, token);
 
@@ -135,13 +146,12 @@ export class AuthService {
   }
 
   async logout() {
-    this.feathers.logout();
+    //this.feathers.logout();
     await this.storage.remove(TOKEN_KEY);
     await this.storage.remove(USER_KEY);
     this.isAuthenticated.next(false);
     this.user.next(guestUser());
   }
-
 
 
 
@@ -190,7 +200,21 @@ export class AuthService {
     });
   }
 
-
+  private handleError(error: HttpErrorResponse) {
+    if (error.error instanceof ErrorEvent) {
+      // A client-side or network error occurred. Handle it accordingly.
+      console.error('An error occurred:', error.error.message);
+    } else {
+      // The backend returned an unsuccessful response code.
+      // The response body may contain clues as to what went wrong,
+      console.error(
+        `Backend returned code ${error.status}, ` +
+        `body was: ${error.error}`);
+    }
+    // return an observable with a user-facing error message
+    return throwError(
+      'Something bad happened; please try again later.');
+  };
 
 
 }

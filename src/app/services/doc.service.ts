@@ -237,6 +237,10 @@ export  class DocService {
     return result[0]['affectedRows'][0];
   }
 
+  async delete_full(id, collection){
+    await nSQL(collection).query('delete').where(['id','=',id]).exec();
+  }
+
   async delete(doc, collection) {
     console.log('Remove', doc, collection);
     doc.meta_removed = true;
@@ -327,7 +331,7 @@ export  class DocService {
                 _id: -1
               },
               updatedAt: {
-                $gt: lastUpdateDate - 500 //take out 500 millseconds, give buffer for missed docs
+                $gt: lastUpdateDate - 1000 //take out 500 millseconds, give buffer for missed docs
               }
             } 
           });

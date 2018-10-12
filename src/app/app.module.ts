@@ -13,7 +13,7 @@ import { AuthGuardService } from './services/auth-guard.service';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { environment } from '../environments/environment';
 import { EditEventPage } from './pages/edit-event/edit-event.page';
-
+import { HttpClientModule} from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -25,6 +25,7 @@ import { EditEventPage } from './pages/edit-event/edit-event.page';
     IonicModule.forRoot(),
     AppRoutingModule,
     FormsModule,
+    HttpClientModule,
     IonicStorageModule.forRoot(),
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
@@ -34,7 +35,7 @@ import { EditEventPage } from './pages/edit-event/edit-event.page';
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     AuthGuardService,
     AuthService,
-  ],
+  ], 
   bootstrap: [AppComponent]
 })
 export class AppModule {}

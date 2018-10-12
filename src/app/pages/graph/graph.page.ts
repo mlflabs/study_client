@@ -18,6 +18,7 @@ export class GraphPage implements OnInit {
   edge_meta = {from: '', to: '', to_obj: null, from_obj: null};
 
   search_term;
+  searchItems = [];
   
   event_subscription;
 

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { AuthService, AuthEvent } from '../../../services/auth.service';
+import { AuthService } from '../../../services/auth.service';
 import { ToastController } from '@ionic/angular';
+import { AuthEvent } from '../../../services/feathers.service';
 
 @Component({
   selector: 'app-register',

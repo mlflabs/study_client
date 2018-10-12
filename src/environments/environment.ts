@@ -4,7 +4,7 @@
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 export const environment = {
   production: false,
-  api_url: 'http://localhost:3030/',
+  api_url: 'http://localhost:3030',
 
   service_events: 'events',
   service_groups: 'groups',
@@ -15,7 +15,7 @@ export const environment = {
   service_blogs: 'blog',
   service_posts: 'posts',
   sync_collections: ['events', 'groups', 'test'],
-  collections: ['events', 'groups', 'change-feed', 'blog', 'posts', 'test'],
+  collections: ['events', 'groups', 'blog', 'posts', 'test'],
   //admin
 
 };
