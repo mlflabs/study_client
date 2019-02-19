@@ -1,11 +1,14 @@
 <ion-header>
   <ion-toolbar>
     <ion-title>{{printStatus()}}</ion-title>
-  </ion-toolbar>
-  <ion-buttons slot="end">
-      <ion-menu-button></ion-menu-button>
+    <ion-buttons slot="end">
+      <ion-button (click)="close()" >
+        <ion-icon slot="end" name="close"></ion-icon>
+      </ion-button>
     </ion-buttons>
+  </ion-toolbar>
 </ion-header>
+
 
 <ion-content padding>
 
@@ -215,6 +218,7 @@
   <div padding text-center>
     <ion-button type="submit" [disabled]="!eventForm.valid" expand="block">Save</ion-button>
     <ion-button (click)="saveAndDuplicate()"  expand="block">Save & Duplicate</ion-button>
+    <ion-button (click)="delete()" color="danger" expand="block">Delete</ion-button>
     <ion-label  color="danger">{{message}}</ion-label>
   </div>
 

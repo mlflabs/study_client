@@ -14,8 +14,7 @@
 <ion-content>
 
     <app-timeline (eventClicked)="onEventClicked($event)"
-                  (eventDoubleClicked)="onEventDoubleClicked($event)"
-                  (eventDiselected)="onEventDiselected()"
+                  (eventUpdate)="onEventUpdate($event)"
                   (eventAdded)="onEventAdded($event)" 
                   [groups]="visible_groups" ></app-timeline>
 

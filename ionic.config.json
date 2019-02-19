@@ -1,5 +1,7 @@
 {
   "name": "Study Notes",
-  "integrations": {},
+  "integrations": {
+    "capacitor": {}
+  },
   "type": "angular"
 }

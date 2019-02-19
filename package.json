@@ -22,6 +22,9 @@
     "@angular/pwa": "^0.8.3",
     "@angular/router": "~6.1.1",
     "@angular/service-worker": "~6.1.1",
+    "@capacitor/cli": "1.0.0-beta.17",
+    "@capacitor/core": "1.0.0-beta.17",
+    "@capacitor/ios": "^1.0.0-beta.17",
     "@datorama/akita": "^1.8.3",
     "@feathersjs/authentication": "^2.1.11",
     "@feathersjs/client": "^3.7.3",
@@ -47,6 +50,7 @@
     "rxjs": "^6.2.2",
     "socket.io-client": "^2.1.1",
     "superagent": "^4.0.0-beta.5",
+    "timeline-plus": "^2.3.4",
     "uniqid": "^5.0.3",
     "vis": "^4.21.0",
     "zone.js": "^0.8.26"

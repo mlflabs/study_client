@@ -29,6 +29,7 @@ const routes: Routes = [
     canActivate: [ AuthGuardService ],
     loadChildren: './pages/admin/orm/orm.module#OrmPageModule' },
   { path: 'graph', loadChildren: './pages/graph/graph.module#GraphPageModule' },
+  { path: 'groupsSelect', loadChildren: './pages/groups-select/groups-select.module#GroupsSelectPageModule' },
 ];
 
 @NgModule({

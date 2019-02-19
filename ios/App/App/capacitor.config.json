@@ -1,0 +1,6 @@
+{
+  "appId": "io.ionic.starter",
+  "appName": "Study Notes",
+  "bundledWebRuntime": false,
+  "webDir": "www"
+}

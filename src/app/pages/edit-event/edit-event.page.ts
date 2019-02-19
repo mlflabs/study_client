@@ -93,6 +93,11 @@ export class EditEventPage implements OnInit {
     this.item = Object.assign({}, this.item, { _id: null, id: null });
   }
 
+  delete(){
+    this.docService.delete(Object.assign({}, this.item), EVENT_SERVICE);
+    this.close();
+  }
+
   printStatus(){
     if(this.item.id){
       return 'Edit: '+this.item.content;
@@ -101,5 +106,10 @@ export class EditEventPage implements OnInit {
       return 'New Event';
     }
   }
+
+  close(){
+    this.modalController.dismiss();
+  }
+
 
 }

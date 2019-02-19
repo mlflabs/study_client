@@ -20,6 +20,7 @@ npm-debug.log*
 .versions/
 coverage/
 www/
+public/
 node_modules/
 tmp/
 temp/
@@ -34,4 +35,4 @@ Thumbs.db
 UserInterfaceState.xcuserstate
 
 flightplan.js
-
+build/

@@ -4,7 +4,8 @@
 // The list of which env maps to which file can be found in `.angular-cli.json`.
 export const environment = {
   production: false,
-  api_url: 'http://localhost:3030',
+  // api_url: 'http://localhost:3030',
+  api_url: 'https://studyapi.mlflabs.com',
 
   service_events: 'events',
   service_groups: 'groups',

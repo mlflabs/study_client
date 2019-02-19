@@ -9,9 +9,10 @@ import { Component, ViewChild, ElementRef,
   OnChanges} from '@angular/core';
 import { Doc, EventItem, newEdge, RANGE_LEVELS } from '../../models/doc.model';
 import * as vis from 'vis';
+import * as timeline from 'timeline-plus';
 import * as moment from 'moment';
 import { DocService } from '../../services/doc.service';
-import { Events } from '../../../../node_modules/@ionic/angular';
+import { Events, Item } from '../../../../node_modules/@ionic/angular';
 
 @Component({
   selector: 'app-timeline',
@@ -28,7 +29,7 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
 
 
   @Output() eventClicked = new EventEmitter<String>();
-  @Output() eventDoubleClicked = new EventEmitter<String>();
+  @Output() eventUpdate = new EventEmitter<String>();
   @Output() eventDiselected = new EventEmitter();
   @Output() eventAdded = new EventEmitter<EventItem>();
 
@@ -45,11 +46,12 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
       add: true,
       updateTime: false,
       updateGroup: false,
-      remove: false
+      remove: true
     },   // default for all items
     stack: false,
     stackSubgroups: false,
     clickToUse: false,
+    selectable: true, 
     maxHeight: 800, //TODO make window hight the max hight
     minHeight: 200,
     groupOrder: 'content',
@@ -57,13 +59,21 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
     //zoomMin: 1000 * 60 * 60 * 24,             // one day in milliseconds
     //zoomMax: 1000 * 60 * 60 * 24 * 365000 * 3, //300 thousand years
     onAdd: (item, cb) =>{
+      console.log('testing..............');
       console.log('ON ADD:  ', item);
       delete item.id;
       this.temp_event = item;
       cb(null);
     },
+    onSelect: (item, cb) => {
+      console.log('ON Select', cb);
+      cb(null);
+    },
     onUpdate: this.onUpdate,
-    onRemove: this.onUpdate,
+    onRemove: item => {
+      console.log(item);
+      this.eventUpdate.emit(item.id);
+    }
   };
 
   
@@ -73,7 +83,7 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     console.log(this.timeline_ref.nativeElement.textContent);
-    this.vis_timeline = new vis.Timeline(this.timeline_ref.nativeElement, 
+    this.vis_timeline = new timeline.Timeline(this.timeline_ref.nativeElement, 
                                          [], 
                                          this.vis_options);
     this.drawStats.windowSize = this.timeline_ref.nativeElement.offsetHeight;
@@ -263,7 +273,8 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
 
   onUpdate(item, callback){
     console.log('OnUpdate: ', item);
-    callback(item);
+    this.eventUpdate.emit(item.id);
+    callback(null);
   }
 
   onRemove(item, callback){
@@ -313,6 +324,8 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
 
     // when we select item in timeline, lets make it the editable item
     this.vis_timeline.on('select', props => {
+      console.log('Select', props);
+      //alert('select');
       //this.onSelectTimelineEvent(props);
     });
 
@@ -325,11 +338,11 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
       //console.log('itemout', properties);
       //console.log('none');
     });
-
+ 
     this.vis_timeline.on('click', props => {
       console.log('click!!!!!', props);
       if(props.item){
-        this.eventClicked.emit(props.item);
+        //this.eventClicked.emit(props.item);
       }
       /*if(props['what'] === 'group-label'){
         console.log('group-label');
@@ -345,6 +358,7 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
     });
 
     this.vis_timeline.on('doubleClick', async props => {
+      /*
       console.log('doubleClick', props);
       if(props.item){
         this.eventDoubleClicked.emit(props.item);
@@ -357,6 +371,7 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
                                            _id: null}});
         this.eventAdded.emit(newitem);
       }
+      */
     });
 
     this.vis_timeline.on('contextmenu', function (properties) {
@@ -369,6 +384,8 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
 
     this.vis_timeline.on('mouseUp', props => {
       console.log('mouseUp', props);
+     
+      /*
       if(props['what'] === 'group-label'){
         console.log('group-label');
         //see if this group is in our visible groups, and if its nested
@@ -380,6 +397,10 @@ export class TimelineComponent implements OnChanges, OnDestroy, AfterViewInit {
           this.redraw();
         } 
       }
+      else if(props['what'] === 'item'){
+        this.eventClicked.emit(props.item);
+      }
+      */
     });
 
     document.getElementById('zoomIn').onclick = () => { this.vis_timeline.zoomIn(0.2); };

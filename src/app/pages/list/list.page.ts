@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy, 
          ChangeDetectorRef } from '@angular/core';
-import { ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
 import { EventItem} from '../../models/doc.model';
 import * as moment from 'moment';
 import { EditEventPage } from '../edit-event/edit-event.page';
@@ -23,6 +23,7 @@ export class ListPage implements OnInit {
   //public eventItem: EventItem = new EventItem();
   public groupSubscription;
   public eventSubscription;
+  public selectedID;
 
   
   //public edge = {};
@@ -41,6 +42,7 @@ export class ListPage implements OnInit {
   constructor(
     public docService: DocService,
     public modalController: ModalController,
+    public toastController: ToastController,
     public cdr: ChangeDetectorRef) {
 
   }
@@ -54,13 +56,23 @@ export class ListPage implements OnInit {
 
   async onGroupChange(group) {
     console.log('Group Changed: ', group, this.groups);
-    group.visible = !group.visible;
-    group.showNested = true;
 
-    if(group.visible)
-      group.events = await this.docService.getByQuery('group', '=', group.id, EVENT_SERVICE);
+    const newgroup = {...{}, ...group};
+
+    if(newgroup.visible){
+      newgroup.visible = false;
+    }
+    else {
+      newgroup.visible = true;
+    }
+    newgroup.showNested = true;
+
+    if(newgroup.visible)
+    newgroup.events = await this.docService.getByQuery('group', '=', group.id, EVENT_SERVICE);
     else
-      group.events = [];
+    newgroup.events = [];
+
+    this.groups = saveIntoArray(newgroup,this.groups, 'id');
     this.redraw();
 
     //this.redraw_timeline();
@@ -79,8 +91,15 @@ export class ListPage implements OnInit {
         const group = this.visible_groups.find(g => g.id === docs[0].group);
         if(group){
           console.log('FORCE TIMELINE REDRAW');
-          //lets modify the group and add this event
-          group.events = saveIntoArray(docs[0],group.events,'id');
+          
+          if(docs[0].meta_removed){
+            console.log('Removing', docs[0]);
+            group.events = group.events.filter(item => item._id !== docs[0]._id);
+          }
+          else {
+            console.log('Updaing', docs[0]);
+            group.events = saveIntoArray(docs[0],group.events,'id');
+          }
           this.visible_groups = this.visible_groups.concat([]);
           this.cdr.detectChanges();
 
@@ -317,16 +336,37 @@ export class ListPage implements OnInit {
   */
 
 
-  onEventClicked(item){
-    console.log('onEventClicked', item);
+  async onEventClicked(id){
+    console.log('onEventClicked', id);
+    /*
+    if(this.selectedID === id)
+      this.edititem(id);
+    else {
+      this.selectedID = id;
+      const item = await this.docService.getDocById(id, EVENT_SERVICE);
+      console.log(item);
+      const toast = await this.toastController.create({
+          message: item.content+': '+item.note,
+          duration: 2000
+      });
+      toast.present();
+
+
+    }
+    */
+      
   }
 
-  async onEventDoubleClicked(id){
-    console.log('onEventDoubleClicked', id);
+  async onEventUpdate(id){
+    console.log('onEventUpdate', id);
+    this.edititem(id);
+  }
+
+  async edititem(id){
     const item = await this.docService.getDocById(id, EVENT_SERVICE);
-    console.log('Dobleclicke item: ', item);
-    if(item)
-      this.showEditEventModal(item);
+      console.log('Edit item: ', item);
+      if(item)
+        this.showEditEventModal(item);
   }
 
   onEventDiselected(){

@@ -52,18 +52,18 @@ export  class DocService {
       //setup database
       nSQL(environment.collections[i])
         .model([
-          { key: 'id', type: 'timeIdms', props: ['pk'] },
+          { key: 'id', type: 'string', props: ['pk'] },
           { key: '*', type: '*'}
         ]).config({
-          mode: 'PERM' // autodetect best method and persist data.
+          //mode: 'PERM' // autodetect best method and persist data.
         });
 
         nSQL(environment.collections[i]+_COLLECTION_DELETED_SUFIX )
         .model([
-          { key: 'id', type: 'timeIdms', props: ['pk'] },
+          { key: 'id', type: 'string', props: ['pk'] },
           { key: '*', type: '*' }
         ]).config({
-          mode: 'PERM' // autodetect best method and persist data.
+          //mode: 'PERM' // autodetect best method and persist data.
         });
     }
 
@@ -73,7 +73,7 @@ export  class DocService {
           { key: '*', type: '*' }
         ])
         .config({
-          mode: 'PERM' // autodetect best method and persist data.
+          //mode: 'PERM' // autodetect best method and persist data.
         })
         .connect().then(() =>{
           //now that we are fully connected, lets see if we have some
@@ -87,7 +87,7 @@ export  class DocService {
           { key: '*', type: '*' }
         ])
         .config({
-          mode: 'PERM' // autodetect best method and persist data.
+          //mode: 'PERM' // autodetect best method and persist data.
         })
         .connect().then(() =>{
           //now that we are fully connected, lets see if we have some
