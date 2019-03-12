@@ -2,7 +2,7 @@
 // The build system defaults to the dev environment which uses `environment.ts`, but if you do
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
 // The list of which env maps to which file can be found in `.angular-cli.json`.
-export const environment = {
+/*export const environment = {
   production: false,
   // api_url: 'http://localhost:3030',
   api_url: 'https://studyapi.mlflabs.com',
@@ -19,6 +19,15 @@ export const environment = {
   collections: ['events', 'groups', 'blog', 'posts', 'test'],
   //admin
 
+};
+*/
+export const environment = {
+  production: true,
+  pouch_prefix: 'study_',
+  token_expiery: 300, // how many days
+  auth_api: 'https://auth.mlflabs.com',
+  couch_db: 'http://localhost:3040/mlfstudy',
+  access_meta_key: 'meta_access',
 };
 
 /*

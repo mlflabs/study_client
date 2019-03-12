@@ -4,3 +4,33 @@
   width: 100%;
   //height: 300px;
 }
+
+.vis-orange {
+  background-color: gold;
+  border-color: orange;
+}
+
+.vis-item.vis-selected.orange {
+  /* custom colors for selected orange items */
+  background-color: orange;
+  border-color: orangered;
+}
+
+
+.vis-green {
+  background-color: greenyellow;
+  border-color: green;
+}
+
+.timeline-item  {
+  border-color: rgb(255, 0, 221);
+  background-color: yellow;
+}
+
+.vis-item.vis-selected {
+  /*background-color: white;
+  border-color: black;
+  color: black;
+  box-shadow: 0 0 10px gray;
+  */
+}

@@ -1,0 +1,28 @@
+<ion-header>
+    <ion-toolbar>
+        <ion-buttons slot="start">
+            <ion-button (click)="close()" >
+              <ion-icon slot="end" name="close"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+      <ion-title>Images</ion-title>
+      <ion-buttons slot="end">
+          <ion-button (click)="newImage()" >
+            <ion-icon slot="end" name="cloud-upload"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+    </ion-toolbar>
+  </ion-header>
+  
+  <ion-content padding>
+      <ion-list>
+          <ion-item *ngFor="let item of items" (click)="selectImage(item)">
+              <ion-thumbnail slot="start">
+                <ion-img [src]="printSource(item)"></ion-img>
+              </ion-thumbnail>
+              <ion-label>{{item.name}}</ion-label>
+          </ion-item>
+  
+      </ion-list>
+  </ion-content>
+  

@@ -1,0 +1,27 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="left"></ion-menu-button>
+    </ion-buttons>
+    <ion-title>projects</ion-title>
+    <ion-buttons slot="end">
+        <ion-button (click)="addnew()" >
+          <ion-icon slot="end" name="add"></ion-icon>
+        </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+    <ion-list>
+        <ion-item-sliding>
+            <ion-item *ngFor="let item of items" (click)="selectItem(item)" detail lines="full">
+                <ion-label>{{item.name}}</ion-label>
+                <ion-note>{{item.note}}</ion-note>
+            </ion-item>
+            <ion-item-options side="end">
+                <ion-item-option (click)="edit(item)"> Edit </ion-item-option>
+            </ion-item-options>
+        </ion-item-sliding>
+    </ion-list>
+</ion-content>

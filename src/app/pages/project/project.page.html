@@ -1,0 +1,18 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button menu="left" ></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Project: {{name}}</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+    <ion-button [routerDirection]="'root'" [routerLink]="'/projects/list'" expand="block">Home</ion-button>
+    <ion-button [routerDirection]="'root'" [routerLink]="'timeline'" expand="block">Timeline</ion-button>
+    <ion-button [routerDirection]="'root'" [routerLink]="'graph'" expand="block">Graphs</ion-button>
+    <ion-button [routerDirection]="'root'" [routerLink]="'groups'" expand="block">Groups</ion-button>
+    <ion-button [routerDirection]="'root'" [routerLink]="'images'" expand="block">Images</ion-button>
+  
+    <ion-button (click)="edit()" expand="block">Edit Project</ion-button>
+</ion-content>

@@ -1,3 +1,4 @@
+/*
 export const environment = {
   production: true,
   api_url: 'https://studyapi.mlflabs.com',
@@ -14,4 +15,14 @@ export const environment = {
   collections: ['events', 'groups', 'blog', 'posts', 'test']
   //admin
 
+};
+*/
+
+export const environment = {
+  production: true,
+  pouch_prefix: 'study_',
+  token_expiery: 300, // how many days
+  auth_api: 'https://auth.mlflabs.com',
+  couch_db: 'https://tasksapi.mlflabs.com/mlfstudy',
+  access_meta_key: 'meta_access',
 };

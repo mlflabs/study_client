@@ -1,14 +1,13 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy, 
          ChangeDetectorRef } from '@angular/core';
-import { ModalController, ToastController } from '@ionic/angular';
-import { EventItem} from '../../models/doc.model';
+import { ModalController, ToastController, MenuController } from '@ionic/angular';
 import * as moment from 'moment';
 import { EditEventPage } from '../edit-event/edit-event.page';
-import { DocService, EVENT_SERVICE, GROUP_SERVICE } from '../../services/doc.service';
-import { TimelineComponent } from '../../components/timeline/timeline.component';
-import { renderDetachView } from '../../../../node_modules/@angular/core/src/view/view_attach';
-import { EventsService } from '../../services/events.service';
+import { DataService } from '../../services/data.service';
+import { EVENT_SERVICE, GROUP_SERVICE } from '../../models';
+
 import { saveIntoArray } from '../../utils';
+import { StateService } from '../../services/state.service';
 //import { Sort } from '../../sort.pipe';
 @Component({
   selector: 'app-list',
@@ -20,14 +19,16 @@ export class ListPage implements OnInit {
 
   public groups = [];
   public visible_groups = [];
+  public images = [];
   //public eventItem: EventItem = new EventItem();
   public groupSubscription;
   public eventSubscription;
   public selectedID;
 
-  
-  //public edge = {};
-  //public edge_meta = {from: '', to: '', to_obj: null, from_obj: null};
+  // graph
+  public nodes = [];
+  public edge = {};
+  public edge_meta = {from: '', to: '', to_obj: null, from_obj: null};
   //public eventSelected = false; //show edit node/even from or not
   //public editingEdge = false; //show edit edge from or not
   //public search = '';
@@ -40,135 +41,199 @@ export class ListPage implements OnInit {
   //selectedGraphItem = null;
 
   constructor(
-    public docService: DocService,
+    public dataService: DataService,
+    public state: StateService,
     public modalController: ModalController,
     public toastController: ToastController,
+    public menuController: MenuController,
     public cdr: ChangeDetectorRef) {
 
   }
 
   ngOnInit() {
-    console.log('ListPage -> ngOnInit');
     this.setup_subscriptions();
   }
   
 
+  onNodeClicked(id){
 
-  async onGroupChange(group) {
-    console.log('Group Changed: ', group, this.groups);
+  }
 
-    const newgroup = {...{}, ...group};
+  onNodeDoubleClicked(id){
 
-    if(newgroup.visible){
-      newgroup.visible = false;
-    }
-    else {
-      newgroup.visible = true;
-    }
-    newgroup.showNested = true;
+  }
 
-    if(newgroup.visible)
-    newgroup.events = await this.docService.getByQuery('group', '=', group.id, EVENT_SERVICE);
-    else
-    newgroup.events = [];
 
-    this.groups = saveIntoArray(newgroup,this.groups, 'id');
-    this.redraw();
 
-    //this.redraw_timeline();
-    //this.groupService.save(Object.assign({}, group));
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  async loadEventImage(event) {
+    if(!event.icon)return;
+    if(this.images[event.icon])return;//already have image loaded
+
+    const doc = await this.dataService.getDoc(event.icon, true);
+
+    const s = 'data:'+doc._attachments['file']['content_type'] +
+              ';base64, ' + 
+              doc._attachments['file']['data'];
+    this.images[doc._id] = s;
   }
 
   async setup_subscriptions(){
 
-    this.eventSubscription = this.docService.subscribeChanges(EVENT_SERVICE)
-      .subscribe(async docs =>{
-        console.log('Event Subscription: ', docs);
+    this.eventSubscription = this.dataService.subscribeProjectCollectionChanges(
+                               this.state.projectId, EVENT_SERVICE)
+      .subscribe(async doc =>{
 
         //we have event change, lets force redraw only if
         //event belongs to visible groups
         //TODO: for now we assume only one event changed
-        const group = this.visible_groups.find(g => g.id === docs[0].group);
+        const group = this.visible_groups.find(g => g.id === doc.group);
         if(group){
-          console.log('FORCE TIMELINE REDRAW');
           
-          if(docs[0].meta_removed){
-            console.log('Removing', docs[0]);
-            group.events = group.events.filter(item => item._id !== docs[0]._id);
+          if(doc._deleted){
+            group.events = group.events.filter(item => item._id !== doc._id);
           }
           else {
-            console.log('Updaing', docs[0]);
-            group.events = saveIntoArray(docs[0],group.events,'id');
+            group.events = saveIntoArray(doc,group.events,'id');
+            this.loadEventImage(doc);
           }
           this.visible_groups = this.visible_groups.concat([]);
           this.cdr.detectChanges();
-
         }
-        
-
-        //lets see if we need to refresh all or just an item
-        
-        //this.items = await this.docService.getAllDocs(EVENT_SERVICE);
-        
-       // const doc = docs[0];
-
-        /*
-        if(doc._removed){
-          //lets see if the item is in graph, if so remove it 
-          this.removeNodeFromGraph(doc);
-        }
-        else{
-          this.updateGraphNode(doc);
-        }
-        */
-
-        //this.redraw_timeline();
       });
 
-    /*this.subscription = this.eventService.getDocsObservable().subscribe(
-      docs => {
-        console.log('event list docs refreshed', docs);
-        this.items = (docs);
-        this.redraw_timeline();
-      }
-    );
-    */
+    this.groupSubscription = this.state.groups$.subscribe(groups => {
+      this.groups = groups;
+      this.refreshGroups();
+    });
 
-    this.groupSubscription = this.docService.subscribeChanges(GROUP_SERVICE)
-      .subscribe( async docs => {
-        const allDocs = await this.docService.getAllDocs(GROUP_SERVICE);
-        console.log('Groups:::: ', allDocs);
-        this.groups = allDocs.sort((a,b) => {
-            if(a['content'] < b['content']){
-              return -1;
-            }
-            else if( a['content'] > b['content']){
-                return 1;
-            }
-            else{
-                return 0;
-            }
-        });
-        console.log('Group-Subscription: ', this.groups);
-        this.redraw();
-      }
-    );
-
-
-
-    //this.items = await this.docService.getAllDocs(EVENT_SERVICE);
-    this.groups = await this.docService.getAllDocs(GROUP_SERVICE);
-    console.log('List Loaded Groups: ', this.groups);
-    //this.redraw_timeline();
-    //this.groupService.loadAllDocs();
-    //this.eventService.loadAllDocs();
-    this.redraw();
+    
   }
 
   redraw() {
     this.visible_groups = this.groups.filter(g => g.visible);
     this.cdr.detectChanges();
   }
+
+  async refreshGroups(){
+    this.groups.forEach(async g =>{
+      if(g.visible){
+        if(!g.events || g.events.length === 0){
+          g.events = await this.dataService.getByQuery({
+            selector: { 
+              $and: [
+                { group: g.id },
+                {
+                  _id: {
+                    $gte: this.state.projectId+ '|' + EVENT_SERVICE,
+                    $lt: this.state.projectId+ '|' + EVENT_SERVICE+'|'+String.fromCharCode(65535)
+                  }
+                }
+    
+              ]
+            },
+          });
+        }
+      }
+      else{
+        g.events = [];
+      }
+
+      //load images
+      g.events.forEach(async e => {
+        await this.loadEventImage(e);
+      });
+    });
+    this.redraw();
+  }
+
+
+  async onEventClicked(id){
+  
+  }
+
+  async onEventUpdate(id){
+    this.edititem(id);
+  }
+
+  async edititem(id){
+    const item = await this.dataService.getDoc(id);
+      if(item)
+        this.showEditEventModal(item);
+  }
+
+  onEventDiselected(){
+  }
+  onEventAdded(item){
+    this.showEditEventModal(item);
+  }
+
+  async showEditEventModal(item) {
+    const modal = await this.modalController.create({
+      component: EditEventPage,
+      componentProps: { item: item,
+                        groups: this.groups }
+    });
+    modal.present();
+  }
+
+
+  printGroupById(id){
+    const group = this.groups.find(g => g.id === id);
+    if(group){
+      return ' -- ' + group.content;
+    }
+    else {
+      return '';
+    }
+  }
+
+  printStartDate(item){
+    if(item.start){
+      return  moment(item.start).format('YYYY-MM-DD');
+    }
+    else {
+      return '';
+    }
+  }
+
+  printEndDate(item){
+    if(item.end){
+      return ' -- '+ moment(item.end).format('YYYY-MM-DD');
+    }
+    else {
+      return '';
+    }
+  }
+
+  toggleMenu(){
+    this.menuController.toggle('right');
+  }
+
+}
+
+
+
+
+
+
+
 
 
   /*
@@ -335,87 +400,3 @@ export class ListPage implements OnInit {
   }
   */
 
-
-  async onEventClicked(id){
-    console.log('onEventClicked', id);
-    /*
-    if(this.selectedID === id)
-      this.edititem(id);
-    else {
-      this.selectedID = id;
-      const item = await this.docService.getDocById(id, EVENT_SERVICE);
-      console.log(item);
-      const toast = await this.toastController.create({
-          message: item.content+': '+item.note,
-          duration: 2000
-      });
-      toast.present();
-
-
-    }
-    */
-      
-  }
-
-  async onEventUpdate(id){
-    console.log('onEventUpdate', id);
-    this.edititem(id);
-  }
-
-  async edititem(id){
-    const item = await this.docService.getDocById(id, EVENT_SERVICE);
-      console.log('Edit item: ', item);
-      if(item)
-        this.showEditEventModal(item);
-  }
-
-  onEventDiselected(){
-    console.log('onEventDiselected');
-  }
-
-  onEventAdded(item){
-    console.log('onEventAdded', item);
-    this.showEditEventModal(item);
-  }
-
-  async showEditEventModal(item) {
-    const modal = await this.modalController.create({
-      component: EditEventPage,
-      componentProps: { item: item,
-                        groups: this.groups }
-    });
-    modal.present();
-  }
-
-
-
-
-  printGroupById(id){
-    const group = this.groups.find(g => g.id === id);
-    if(group){
-      return ' -- ' + group.content;
-    }
-    else {
-      return '';
-    }
-  }
-
-  printStartDate(item){
-    if(item.start){
-      return  moment(item.start).format('YYYY-MM-DD');
-    }
-    else {
-      return '';
-    }
-  }
-
-  printEndDate(item){
-    if(item.end){
-      return ' -- '+ moment(item.end).format('YYYY-MM-DD');
-    }
-    else {
-      return '';
-    }
-  }
-
-}

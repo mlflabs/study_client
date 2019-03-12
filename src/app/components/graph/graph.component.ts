@@ -5,7 +5,7 @@ import { Component, ViewChild, ElementRef,
   EventEmitter,
   OnChanges,
   SimpleChange} from '@angular/core';
-import { newEdge } from '../../models/doc.model';
+import { newEdge } from '../../models';
 import * as vis from 'vis';
 
 
@@ -46,7 +46,6 @@ export class GraphComponent implements AfterViewInit, OnChanges {
   constructor() { }
 
   ngAfterViewInit() {
-    console.log('Graph Component OnNGInit');
     this.vis_graph = new vis.Network(this.graph_ref.nativeElement, {
       nodes: [],
       edges: []
@@ -58,7 +57,6 @@ export class GraphComponent implements AfterViewInit, OnChanges {
 
   setup(){
     this.vis_graph.on('selectNode', (props)=>{
-      console.log('selectNode', props.nodes[0]);
 
       const node = props.nodes[0];
       this.nodeClicked.emit(node);
@@ -67,11 +65,9 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     });
 
     this.vis_graph.on('selectEdge', (props)=>{
-      console.log('selectEdge', props);
     });
 
     this.vis_graph.on('deselectNode', (props)=>{
-      console.log('deselectNode', props);
 
       if(props.nodes.length === 0)
         this.nodeClicked.emit(null);
@@ -80,14 +76,11 @@ export class GraphComponent implements AfterViewInit, OnChanges {
     });
 
     this.vis_graph.on('deselectEdge', (props)=>{
-      console.log('deselectEdge', props);
     });
 
     this.vis_graph.on('doubleClick', props =>{
-      console.log('doubleclick: ', props);
       //if we click on node, lets put it into edits
       if(props.nodes.length > 0){
-        console.log('Graph Editing item: ');
 
         this.nodeDoubleClicked.emit(props.nodes[0]);
         //this.cdr.detectChanges();

@@ -1,75 +1,89 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { DocService, DOC_LOCAL_CHANGES_STREM } from '../../../services/doc.service';
+import { DataService } from '../../../services/data.service';
+import { UploadEvent, UploadFile, FileSystemFileEntry, FileSystemDirectoryEntry } from 'ngx-file-drop';
+import { FILE_SERVICE } from '../../../models';
+
+class ImageSnippet {
+  constructor(public src: string, public file: File) {}
+}
 
 @Component({
   selector: 'app-orm',
   templateUrl: './orm.page.html',
   styleUrls: ['./orm.page.scss'],
 })
-export class OrmPage implements OnInit, OnDestroy {
+export class OrmPage implements OnInit {
 
+  
+  public file;
   public items = [];
-  test;
 
   public item = {
-    type:'',
-    body: '',
-    text: '',
-
+    name:'',
+    note: '',
   };
+
   subscriptions = [];
 
-  constructor( public docService: DocService) { }
+  constructor( public dataService: DataService) { }
+
+  //selectedFile: ImageSnippet;
+
+  async processFile(imageInput: any, dataService: DataService) {
+    this.file = imageInput.files[0];
+    //const res = await this.dataService.save({'name': 'testing'}, FILE_SERVICE, null, file, file.type);
+  }
+
+
+
+
+  public dropped(event: UploadEvent) {
+
+    for (const droppedFile of event.files) {
+
+      // Is it a file?
+      if (droppedFile.fileEntry.isFile) {
+        const fileEntry = droppedFile.fileEntry as FileSystemFileEntry;
+        fileEntry.file((file: File) => {
+          this.file = file;
+          // Here you can access the real file
+          //const res = await this.dataService.save({'name': 'testing'}, FILE_SERVICE, null, file, file.type);
+
+          /**
+          // You could upload it like this:
+          const formData = new FormData()
+          formData.append('logo', file, relativePath)
+
+          // Headers
+          const headers = new HttpHeaders({
+            'security-token': 'mytoken'
+          })
+
+          this.http.post('https://mybackend.com/api/upload/sanitize-and-save-logo', formData, { headers: headers, responseType: 'blob' })
+          .subscribe(data => {
+            // Sanitized logo returned from backend
+          })
+          **/
+
+        });
+      } else {
+        // It was a directory (empty directories are added, otherwise only files)
+        const fileEntry = droppedFile.fileEntry as FileSystemDirectoryEntry;
+      }
+    }
+  }
+
+  public fileOver(event){
+  }
+
+  public fileLeave(event){
+  }
+
+
 
   async ngOnInit() {
-    console.log('ngOnInit');
-    this.subscriptions[0] = this.docService.subscribeChanges('test')
-      .subscribe(async doc => {
-        console.log('We are making changes to docs', doc);
-        this.items = await this.docService.getAllDocs('test');
-    });
-
-    this.items = await this.docService.getAllDocs('test');
     
-    const changes = await this.docService.getAllDocs(DOC_LOCAL_CHANGES_STREM);
-    console.log('CHANGES: ', changes);
-
 
   }
-  saveItem(){
-    console.log('Saving Test: ', this.test);
-    this.docService.save(Object.assign({}, this.test), 'test');
-    this.test = {};
-  }
-
-  removeItem(doc) {
-    console.log('Removing: ', doc);
-    this.docService.delete(doc, 'test');
-
-  }
-
-  selectedTest(item){
-    console.log('Selected Item: ', item);
-    this.test = {...{}, ...item};
-  }
-
-  ngOnDestroy() {
-    console.log('ngOnDestroy');
-    this.subscriptions.forEach(sub =>{
-      sub.unsubscribe();
-    });
-  }
-
-  execute(){
-    console.log('Execute: ', this.item);
-    this.docService.save(JSON.parse(this.item.body), this.item.type);
-  }
-
-  dropCollection(){
-    this.docService._dropCollection(this.item.type);
-  }
-
-  dropAll(){
-    this.docService._dropCollection('all');
-  }
+  
 }

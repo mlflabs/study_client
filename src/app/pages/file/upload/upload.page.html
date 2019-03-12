@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>upload</ion-title>
+    <ion-buttons slot="end">
+        <ion-button (click)="close()" >
+          <ion-icon slot="end" name="close"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+    <ion-item>
+        <ion-input  id="name"
+                    name="name"
+                    #name="ngModel"
+                    [(ngModel)]="item.name" 
+                    type="text" 
+                    placeholder="Name"></ion-input>
+      </ion-item><BR>
+      <!-- <div class="center">
+          <file-drop headertext="Drop files here" (onFileDrop)="dropped($event)" 
+          (onFileOver)="fileOver($event)" (onFileLeave)="fileLeave($event)">
+          </file-drop>
+        
+      </div>
+    -->
+        <div class="ion-button fileUpload">
+          <input #imageInput
+              
+              type="file"
+              accept="image/*"
+              (change)="processFile(imageInput)" />
+              {{uploadFileName}}
+        </div>
+      <ion-button (click)="saveImage()"  expand="block">Save Image</ion-button>
+</ion-content>

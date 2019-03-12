@@ -1,0 +1,58 @@
+
+.timeline-item.vis-orange {
+  background-color: gold;
+  border-color: orange;
+}
+
+.timeline-item.timeline-point.vis-orange {
+  background: none;
+  border-color: orange;
+}
+
+.vis-item.vis-selected.vis-clear {
+  background-color: lightgray;
+  border-color: gray;
+}
+
+
+.timeline-item.vis-clear {
+  background: none;
+  border: none;
+}
+
+.timeline-item.timeline-point.vis-clear {
+  background: lightgray;
+  border-color: darkgray;
+}
+
+
+.vis-item.vis-selected.vis-orange {
+  /* custom colors for selected orange items */
+  background-color: orange;
+  border-color: orangered;
+}
+
+
+.timeline-item.vis-green {
+  background-color: greenyellow;
+  border-color: green;
+}
+
+.timeline-item.timeline-point.vis-green {
+  background: none;
+  border-color: green;
+}
+
+.timeline-item.timeline-point.vis-blue {
+  background: none;
+  border-color: rgb(6, 44, 148);
+}
+
+.timeline-item.vis-blue {
+  background-color: rgb(44, 144, 211);
+  border-color: rgb(6, 44, 148);
+}
+
+.timeline-item  {
+ 
+}

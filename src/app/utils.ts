@@ -22,6 +22,15 @@ export function getIndexById(id: string, ary: any, idKey: string = '_id'): numbe
   return -1;
 }
 
+
+export function generateCollectionId(prefix:string=''):string {
+  return prefix+'|'+generateUUID();
+}
+
+export function generateShortCollectionId(prefix:string=''):string {
+  return prefix+'|'+generateShortUUID();
+}
+
 export function generateShortUUID(): string {
   let d = Date.now();
 
@@ -82,3 +91,9 @@ export function deepCompare( x, y ) {
   }
   return true;
 }
+
+export const waitMS = (ms) => {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+};

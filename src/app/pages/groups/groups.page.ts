@@ -1,7 +1,9 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, OnDestroy } from '@angular/core';
-import { Doc, GroupItem } from '../../models/doc.model';
-import { GroupsService } from '../../services/groups.service';
-import { DocService, GROUP_SERVICE } from '../../services/doc.service';
+import { Doc, GroupItem } from '../../models';
+import { DataService } from '../../services/data.service';
+import { GROUP_SERVICE } from '../../models';
+import { StateService } from '../../services/state.service';
+
 
 @Component({
   selector: 'app-groups',
@@ -17,22 +19,29 @@ export class GroupsPage implements OnInit, OnDestroy {
   public subscription: any;
 
 
-  constructor(public docService: DocService,
-              public cdr: ChangeDetectorRef) {
+  prevUrl='';
+
+  constructor(public dataService: DataService,
+              public cdr: ChangeDetectorRef,
+              public state: StateService) {
 
   }
 
   async ngOnInit() {
+    this.prevUrl = this.state.prevUrl;
 
-    this.subscription = this.docService.subscribeChanges(GROUP_SERVICE)
-      .subscribe( async docs => {
-        this.items = await this.docService.getAllDocs(GROUP_SERVICE);
-        console.log('Group Refresh: ', this.items);
-        this.cdr.detectChanges();
+    this.subscription = this.dataService.subscribeProjectCollectionChanges(
+                                this.state.projectId,GROUP_SERVICE)
+      .subscribe( docs => {
+        this.refresh();
       });
+    this.refresh();
     
-    this.items = await this.docService.getAllDocs(GROUP_SERVICE);
-    console.log('Group Page: ', this.items);
+  }
+
+  async refresh(){
+    this.items = await this.dataService.getAllByProjectAndType(
+      this.state.projectId, GROUP_SERVICE);
     this.cdr.detectChanges();
   }
 
@@ -41,13 +50,12 @@ export class GroupsPage implements OnInit, OnDestroy {
   }
 
   onSubmit() {
-    console.log('Saving: ', this.item);
-    this.docService.save(Object.assign({}, this.item, { _id: null }), GROUP_SERVICE);
+    this.dataService.saveInProject(
+        Object.assign({}, this.item, { _id: null }), this.state.selectedProject, GROUP_SERVICE);
   }
 
   removeItem(doc) {
-    console.log('Removing: ', doc);
-    this.docService.delete(doc, GROUP_SERVICE);
+    this.dataService.remove(doc._id);
     //this.groupsService.remove(doc);
   }
 

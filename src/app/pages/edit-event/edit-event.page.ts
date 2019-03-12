@@ -1,7 +1,13 @@
 import { Component, OnInit, Input } from '@angular/core';
-import { EventItem } from '../../models/doc.model';
-import { ModalController } from '../../../../node_modules/@ionic/angular';
-import { DocService, EVENT_SERVICE } from '../../services/doc.service';
+import { EventItem } from '../../models';
+import { ModalController, ToastController } from '@ionic/angular';
+import { DataService } from '../../services/data.service';
+import { EVENT_SERVICE, FileItem, FILE_SERVICE } from '../../models';
+import { UploadEvent, UploadFile, FileSystemFileEntry, FileSystemDirectoryEntry } from 'ngx-file-drop';
+import { UploadPage } from '../file/upload/upload.page';
+import { ImagesPage } from '../file/images/images.page';
+import { StateService } from '../../services/state.service';
+import { SelectImageModalPage } from '../file/select-image-modal/select-image-modal.page';
 
 @Component({
   selector: 'app-edit-event',
@@ -13,15 +19,19 @@ export class EditEventPage implements OnInit {
   @Input()
   item = new EventItem();
 
+
   @Input()
   groups = [];
 
   message = '';
 
   view = 'main';
+  imageView = 'images';
 
   constructor(public modalController : ModalController,
-              public docService: DocService) { }
+              public toastController: ToastController,
+              public state: StateService,
+              public dataService: DataService) { }
 
   ngOnInit() {
     /*if(!this.item.views){
@@ -30,71 +40,57 @@ export class EditEventPage implements OnInit {
   }
 
   async onSubmit() {
-    console.log('Saving event: ', this.item);
     if(this.item.type === 'range' || this.item.type === 'background'){
-      console.log('IS RANGE');
       if(this.item.end){
-        console.log('Pass');
       }
       else {
-        console.log('Didnt pass');
         this.message = 'Range Type needs an end date.';
         return;
       }
     }
 
     if(this.item.type === 'box' || this.item.type === 'point'){
-      console.log('IS POINT');
       if(!this.item.end){
-        console.log('Pass');
+
       } 
       else {
-        console.log('Didnt pass');
         this.message = 'Point or Box date cannot include end date';
         return;
       }
     }
 
-    await this.docService.save(Object.assign({}, { _id: null }, this.item), EVENT_SERVICE);
-
+    await this.dataService.saveInProject(
+      Object.assign({}, { _id: null }, this.item), 
+      this.state.selectedProject,
+      EVENT_SERVICE);
     this.modalController.dismiss(this.item);
-    
-    
   }
 
   async saveAndDuplicate() {
-    console.log('SaveAndDuplicate: ', this.item);
     if(this.item.type === 'range' || this.item.type === 'background'){
-      console.log('IS RANGE');
       if(this.item.end){
-        console.log('Pass');
       }
       else {
-        console.log('Didnt pass');
         this.message = 'Range Type needs an end date.';
         return;
       }
     }
 
     if(this.item.type === 'box' || this.item.type === 'point'){
-      console.log('IS POINT');
       if(!this.item.end){
-        console.log('Pass');
       } 
       else {
-        console.log('Didnt pass');
         this.message = 'Point or Box date cannot include end date';
         return;
       }
     }
     this.message = '';
-
-    this.docService.save(Object.assign({}, { _id: null }, this.item), EVENT_SERVICE);
-    this.item = Object.assign({}, this.item, { _id: null, id: null });
+    this.dataService.save(Object.assign({}, { _id: null }, this.item), EVENT_SERVICE);
+    this.item = Object.assign({}, this.item, { _id: null, id: null, _rev: null });
   }
 
   delete(){
-    this.docService.delete(Object.assign({}, this.item), EVENT_SERVICE);
+    this.dataService.remove(this.item.id);
     this.close();
   }
 
@@ -109,6 +105,23 @@ export class EditEventPage implements OnInit {
 
   close(){
     this.modalController.dismiss();
+  }
+
+  async newImage(){
+    const modal = await this.modalController.create({
+      component: UploadPage,
+      componentProps: { item: new FileItem}
+    });
+    const id = await modal.present();
+  }
+
+  async selectImage(){
+    const modal = await this.modalController.create({
+      component: SelectImageModalPage,
+    });
+    modal.present();
+    const res = await modal.onDidDismiss();
+    this.item.icon = res.data._id;
   }
 
 

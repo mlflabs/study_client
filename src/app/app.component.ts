@@ -1,11 +1,12 @@
 import { Component } from '@angular/core';
 
-import { Platform } from '@ionic/angular';
+import { Platform, NavController } from '@ionic/angular';
 import { SplashScreen } from '@ionic-native/splash-screen/ngx';
 import { StatusBar } from '@ionic-native/status-bar/ngx';
-import { EventsService } from './services/events.service';
-import { AuthService } from './services/auth.service';
 import { Router } from '@angular/router';
+import { AuthService } from './auth/auth.service';
+import { StateService } from './services/state.service';
+import { saveIntoArray } from './utils';
 
 @Component({
   selector: 'app-root',
@@ -15,10 +16,11 @@ export class AppComponent {
 
   public appPages = [];
 
-  public _appPages = [
+
+  public _top = [
     {
       title: 'Home',
-      url: '/home',
+      url: '/projects',
       icon: 'home',
       auth : true
     },
@@ -41,39 +43,25 @@ export class AppComponent {
       auth : true
     },
     {
-      title: 'User',
-      url: '/private/user',
-      icon: 'settings',
+      title: 'Images',
+      url: '/images',
+      icon: 'images',
       auth : true
-    },
-    {
-      title: 'Admin',
-      url: '/admin/orm',
-      icon: 'build',
-      auth : true
-    },
-    {
-      title: 'Login',
-      url: '/auth/login',
-      icon: 'contact',
-      auth : false
-    },
-    {
-      title: 'Register',
-      url: '/auth/register',
-      icon: 'settings',
-      auth : false
     }
   ];
+
+  public groups = [];
+
+  public showRightMenu= false;
 
   constructor(
     private platform: Platform,
     private splashScreen: SplashScreen,
     private statusBar: StatusBar,
-
+    public navCtr: NavController,
     public router: Router,
-    public eventService: EventsService,
     public auth: AuthService,
+    public state: StateService,
   ) {
     this.initializeApp();
   }
@@ -86,18 +74,127 @@ export class AppComponent {
 
       this.appPages.pop();
 
-      console.log(this.auth.isAuthenticated);
-      this.auth.isAuthenticated.subscribe(state => {
+      this.auth.isAuthenticated$.subscribe(state => {
+        this.refresh();
+
         if (state) {
-          this.appPages = this._appPages.filter(p => p.auth === true);
-          this.router.navigate(['home']);
+          //this.appPages = this._appPages.filter(p => p.auth === true);
+          this.router.navigate(['projects']);
         } else {
           // add login page
-          this.appPages = this._appPages.filter(p => p.auth === false);
-          this.router.navigate(['auth/login']);
+          //this.appPages = this._appPages.filter(p => p.auth === false);
+          this.router.navigate(['login']);
         }
       });
 
+      this.state.selectedProject$.subscribe(project => {
+        console.log('AppComponent Project Subscription:: ', project);
+        this.refresh();
+      });
+
+      this.state.groups$.subscribe(groups =>{
+        this.groups = groups;
+      });
+
+
+
     });
+    this.refresh();
+  }
+
+  refresh(){
+    //first check if we are loged in;
+    if(this.auth.isAuthenticated){
+      this.appPages = this.generateMenu();
+    }
+    else {
+      
+    }
+    console.log('App Pages:: ', this.appPages);
+    //this.appPages = this._top;
+  }
+
+  generateMenu(){
+    const menu = [];
+
+    menu.push({
+      title: 'Home',
+      url: '/projects',
+      icon: 'home',
+      auth : true
+    });
+    console.log('Menu Checking projectid: ', this.state.projectId);
+    if(this.state.projectId){
+      menu.push({
+        title: 'Project: ' + this.state.selectedProject.name,
+        url: '/projects/p/'+this.state.projectId,
+        icon: 'square',
+        auth : true
+      });
+      menu.push({
+        title: 'Timeline',
+        url: '/projects/p/'+this.state.projectId+'/timeline',
+        icon: 'analytics',
+        auth : true
+      });
+      menu.push({
+        title: 'Graph',
+        url: '/projects/p/'+this.state.projectId+'/graph',
+        icon: 'git-network',
+        auth : true
+      });
+      menu.push({
+        title: 'Groups',
+        url: '/projects/p/'+this.state.projectId+'/groups',
+        icon: 'logo-buffer',
+        auth : true
+      });
+      menu.push({
+        title: 'Images',
+        url: '/projects/p/'+this.state.projectId+'/images',
+        icon: 'images',
+        auth : true
+      });
+     
+    }
+    console.log('Menu:: ', menu);
+    return menu;
+  }
+
+  printUsername(){
+    if(this.auth.user){
+      return this.auth.user.username.charAt(0).toUpperCase() +
+        this.auth.user.username.slice(1);
+    }
+    return 'Guest';
+  }
+
+  printAvatarUrl(){
+    return 'assets/avatars/default.png';
+  }
+
+  goToEditProgile(){
+
+  }
+
+  logout(){
+    this.auth.logout();
+  }
+
+  login(){
+    this.navCtr.navigateForward('/login');
+  }
+
+  register(){
+    this.navCtr.navigateForward('/register');
+  }
+
+  onGroupChange(group){
+    console.log('OnGroupChange:: ', group);
+    this.state.groups = saveIntoArray(Object.assign(
+                  group, 
+                  { visible: (group.visible === false || group.visible === null) },
+                  { showNested: true }),
+                  this.state.groups);
   }
 }

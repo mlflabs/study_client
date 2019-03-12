@@ -1,8 +1,9 @@
 import { Component, OnInit,
   ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { DocService, EVENT_SERVICE } from '../../services/doc.service';
 import { ModalController } from '../../../../node_modules/@ionic/angular';
 import { saveIntoArray } from '../../utils';
+import { DataService } from '../../services/data.service';
+import { EVENT_SERVICE } from '../../models';
 
 
 @Component({
@@ -23,7 +24,7 @@ export class GraphPage implements OnInit {
   event_subscription;
 
   constructor(
-    public docService: DocService,
+    public dataService: DataService,
     public modalController: ModalController,
     public cdr: ChangeDetectorRef
   ) { }
@@ -31,7 +32,6 @@ export class GraphPage implements OnInit {
 
 
   ngOnInit() {
-    console.log('OnInit');
     this.setup_subscriptions();
   }
 
@@ -45,9 +45,8 @@ export class GraphPage implements OnInit {
 
 
   onSearchChange(){
-    console.log('Search: ', this.search_term);
-    const items = this.docService.searchByField(
-        this.search_term, 'contents', EVENT_SERVICE, 10);
+    //const items = this.docService.searchByField(
+    //    this.search_term, 'contents', EVENT_SERVICE, 10);
 
     // tslint:disable-next-line:prefer-const
     let searchItems = [];
@@ -74,8 +73,8 @@ export class GraphPage implements OnInit {
     to.to = saveIntoArray(this.edge,to.to,'id');
     from.from = saveIntoArray(this.edge, from.from, 'id');
 
-    this.docService.save(from, EVENT_SERVICE);
-    this.docService.save(to, EVENT_SERVICE);
+    this.dataService.save(from, EVENT_SERVICE);
+    this.dataService.save(to, EVENT_SERVICE);
   }
 
 
@@ -87,7 +86,7 @@ export class GraphPage implements OnInit {
 
 
   async setup_subscriptions(){
-    this.event_subscription = this.docService.subscribeChanges(EVENT_SERVICE)
+    this.event_subscription = this.dataService.subscribeCollectionChanges(EVENT_SERVICE)
       .subscribe(async docs =>{
         console.log('Subscripton sync event: ', docs);
 

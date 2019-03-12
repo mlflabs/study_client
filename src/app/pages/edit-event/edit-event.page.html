@@ -16,6 +16,7 @@
       color="primary"
       [(ngModel)]="view"  >
       <ion-segment-button value="main">Main</ion-segment-button>
+      <ion-segment-button value="images">Image</ion-segment-button>
       <ion-segment-button value="ranges">Date Ranges</ion-segment-button>
     </ion-segment>
 
@@ -85,6 +86,17 @@
       <ion-segment-button value="point">Point</ion-segment-button>
       <ion-segment-button value="range">Range</ion-segment-button>
       <ion-segment-button value="background">Background</ion-segment-button>
+    </ion-segment>
+    <ion-segment
+              id="className"
+              name="className" 
+              mode='ios'
+              [(ngModel)]="item.className"  >
+      <ion-segment-button value="default">Default</ion-segment-button>
+      <ion-segment-button value="vis-orange">Orange</ion-segment-button>
+      <ion-segment-button value="vis-green">Green</ion-segment-button>
+      <ion-segment-button value="vis-blue">Blue</ion-segment-button>
+      <ion-segment-button value="vis-clear">Clear</ion-segment-button>
     </ion-segment>
     <ion-item>
         <ion-input  id="subgroup"
@@ -215,6 +227,21 @@
                 </ion-row>
         </ion-grid>
   </div>   
+
+
+  <!-- Date Range View -->
+  <div  [hidden]="view !== 'images'" >
+      
+      
+      <ion-button (click)="selectImage()"  expand="block">Select Image</ion-button>
+      <ion-button (click)="newImage()"  expand="block">New Image</ion-button>
+  </div>  
+
+
+
+
+
+  
   <div padding text-center>
     <ion-button type="submit" [disabled]="!eventForm.valid" expand="block">Save</ion-button>
     <ion-button (click)="saveAndDuplicate()"  expand="block">Save & Duplicate</ion-button>
