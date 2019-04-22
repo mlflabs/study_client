@@ -1,13 +1,14 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectionStrategy, 
+import { Component, OnInit, ViewChild, ChangeDetectionStrategy, 
          ChangeDetectorRef } from '@angular/core';
 import { ModalController, ToastController, MenuController } from '@ionic/angular';
 import * as moment from 'moment';
 import { EditEventPage } from '../edit-event/edit-event.page';
 import { DataService } from '../../services/data.service';
-import { EVENT_SERVICE, GROUP_SERVICE } from '../../models';
+import { EVENT_SERVICE, GROUP_SERVICE, EdgeItem } from '../../models';
 
 import { saveIntoArray } from '../../utils';
 import { StateService } from '../../services/state.service';
+import { GraphComponent } from '../../components/graph/graph.component';
 //import { Sort } from '../../sort.pipe';
 @Component({
   selector: 'app-list',
@@ -20,14 +21,20 @@ export class ListPage implements OnInit {
   public groups = [];
   public visible_groups = [];
   public images = [];
+
+  _test = 0;
+
+  @ViewChild(GraphComponent)
+  public graphComp: GraphComponent;
+
+
   //public eventItem: EventItem = new EventItem();
   public groupSubscription;
   public eventSubscription;
   public selectedID;
 
   // graph
-  public nodes = [];
-  public edge = {};
+  public edge;
   public edge_meta = {from: '', to: '', to_obj: null, from_obj: null};
   //public eventSelected = false; //show edit node/even from or not
   //public editingEdge = false; //show edit edge from or not
@@ -55,17 +62,62 @@ export class ListPage implements OnInit {
   }
   
 
-  onNodeClicked(id){
+  onNodeSelected(id){
+    console.log('onNodeClicked: ', id);
+    const node = this.state.nodes.find(n=> n._id === id);
+    console.log('Node Selected: ', node);
+  }
 
+  
+  onEdgeSelected(id){
+    //find the node and select it in state
+    this.state.nodes.forEach(node =>{
+      if(!node.to) node.to = new Array<EdgeItem>();
+      node['to'].forEach(e => {
+        console.log('Comparing:: ', id, e.id);
+        if(id === e.id){
+          console.log('Found node edge: ', e);
+          this.state.edge = Object.assign({}, e);
+          this.state.showEditEdge = true;
+          return;
+        }
+      });
+    });
+
+  }
+
+
+  onNewEdge(edge:EdgeItem){
+    const to = this.state.nodes.find(n => n._id === edge.to);
+    const from = this.state.nodes.find(n => n._id === edge.from);
+    console.log('SetupEditEdge 2 Nodes: ', edge, from, to);
+    console.log(to.to, from.from);
+    to.to = saveIntoArray(edge,to.to, 'id');
+    from.from = saveIntoArray(edge, from.from, 'id');
+    console.log(to.to, from.from);
+    this.dataService.save(to);
+    this.dataService.save(from);
+    this.state.edge = edge;
   }
 
   onNodeDoubleClicked(id){
-
+    console.log('onNodeDoubleClicked: ', id);
   }
 
+  setupEditEdge(edge){
+    //find both nodes, and get their names
+    console.log(this.state.nodes);
+    const to = this.state.nodes.find(n => n._id === edge.to);
+    const from = this.state.nodes.find(n => n._id === edge.from);
+    console.log('SetupEditEdge 2 Nodes: ', edge, from, to);
+    this.edge_meta = {to: to.content, 
+                      from: from.content,
+                      to_obj: to,
+                      from_obj:from};
+    this.edge = edge;
 
-
-
+    this.cdr.detectChanges();
+  }
 
 
 
@@ -95,6 +147,11 @@ export class ListPage implements OnInit {
   }
 
   async setup_subscriptions(){
+
+    this.state.nodes$.subscribe(nodes =>{
+      console.log('GRAPH NODES::: ', nodes);
+      this.graphComp.setNodes(nodes);
+    });
 
     this.eventSubscription = this.dataService.subscribeProjectCollectionChanges(
                                this.state.projectId, EVENT_SERVICE)

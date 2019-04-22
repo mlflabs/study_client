@@ -1,3 +1,4 @@
+
 // The file contents for the current environment will overwrite these during build.
 // The build system defaults to the dev environment which uses `environment.ts`, but if you do
 // `ng build --env=prod` then `environment.prod.ts` will be used instead.
@@ -22,11 +23,12 @@
 };
 */
 export const environment = {
+  app_id: 'std',
   production: true,
   pouch_prefix: 'study_',
   token_expiery: 300, // how many days
   auth_api: 'https://auth.mlflabs.com',
-  couch_db: 'http://localhost:3040/mlfstudy',
+  couch_db: 'http://localhost:3001/api_local',
   access_meta_key: 'meta_access',
 };
 

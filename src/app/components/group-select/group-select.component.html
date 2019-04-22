@@ -1,0 +1,9 @@
+<ion-list>
+    <ion-item><h3>{{heading}}</h3></ion-item>
+    <ion-item  *ngFor="let group of state.groups" >
+        <ion-chip>
+            <ion-label>{{group.content}}</ion-label>
+              <ion-toggle [checked]="group.visible" (ionChange)="onGroupChange(group)" color="secondary"></ion-toggle>
+        </ion-chip>
+    </ion-item>
+</ion-list>

@@ -14,19 +14,28 @@
     </ion-toolbar>
 </ion-header>
   
-<ion-content>
-
-    <app-timeline (eventClicked)="onEventClicked($event)"
+<ion-content padding>
+    <ion-grid>
+        <ion-row>
+            <ion-col>
+                <app-timeline (eventClicked)="onEventClicked($event)"
                   (eventUpdate)="onEventUpdate($event)"
                   (eventAdded)="onEventAdded($event)" 
                   [images]="images"
                   [groups]="visible_groups" ></app-timeline>
-
-    <app-graphs
-                  [nodes]="nodes"
-                  (nodeClicked)="onNodeClicked($event)"
+            </ion-col>
+        </ion-row>
+        <ion-row>
+            <ion-col>
+                <app-graphs
+                  
+                  (newEdge)="onNewEdge($event)"
+                  (edgeSelected)="onEdgeSelected($event)"
+                  (nodeSelected)="onNodeSelected($event)"
                   (nodeDoubleClicked)="onNodeDoubleClicked($event)"></app-graphs>
-
+            </ion-col>
+        </ion-row>
+    </ion-grid>
 </ion-content>
 
 

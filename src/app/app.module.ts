@@ -23,9 +23,11 @@ import { SelectImageModalPage } from './pages/file/select-image-modal/select-ima
 import { DisplayImagePage } from './pages/file/display-image/display-image.page';
 import { ProjectsPage } from './pages/projects/projects.page';
 import { ProjectPage } from './pages/project/project.page';
+import { ComponentsModule } from './components/components.module';
 
 @NgModule({
   declarations: [
+    
     AppComponent,
     EditEventPage,
     UploadPage, 
@@ -36,6 +38,7 @@ import { ProjectPage } from './pages/project/project.page';
     ProjectPage,
     ImagesPage],
   entryComponents: [ProjectsPage,
+                    
                     ProjectPage,
                     EditEventPage, 
                     UploadPage, 
@@ -51,6 +54,7 @@ import { ProjectPage } from './pages/project/project.page';
     FileDropModule,
     HttpClientModule,
     IonicStorageModule.forRoot(),
+    ComponentsModule,
     // ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [

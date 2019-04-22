@@ -19,10 +19,11 @@ export const environment = {
 */
 
 export const environment = {
+  app_id: 'std',
   production: true,
-  pouch_prefix: 'study_',
+  pouch_prefix: 'std_',
   token_expiery: 300, // how many days
   auth_api: 'https://auth.mlflabs.com',
-  couch_db: 'https://tasksapi.mlflabs.com/mlfstudy',
+  couch_db: 'https://api.mlflabs.com/mlfapi',
   access_meta_key: 'meta_access',
 };

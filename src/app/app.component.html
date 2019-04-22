@@ -20,13 +20,13 @@
                   </ion-text>
                   -->
                   <ion-menu-toggle  class="mto" auto-hide="false">
-                    <a  [hidden]="!isGuest" class="text08" tappable (click)="goToEditProgile()">
+                    <a  [hidden]="isGuest" class="text08" tappable (click)="goToEditProgile()">
                       <ion-text color="medium">
                         <ion-icon name="contact"></ion-icon>
                         <strong>edit profile</strong>
                       </ion-text>
                     </a> 
-                    <a [hidden]="isGuest" class="text08" tappable (click)="register()">
+                    <a [hidden]="!isGuest" class="text08" tappable (click)="register()">
                         <ion-text color="medium">
                           <ion-icon name="person-add"></ion-icon>
                           <strong> register</strong>
@@ -35,14 +35,14 @@
   
                     <ion-text color="secondary"> | </ion-text> 
                     
-                    <a [hidden]="!isGuest" class="text08" tappable (click)="logout()">
+                    <a [hidden]="isGuest" class="text08" tappable (click)="logout()">
                       <ion-text color="medium">
                         <ion-icon name="log-out"></ion-icon>
                         <strong>logout</strong>
                       </ion-text>
                     </a>
                     
-                    <a [hidden]="isGuest" class="text08" tappable (click)="login()">
+                    <a [hidden]="!isGuest" class="text08" tappable (click)="login()">
                         <ion-text color="medium">
                           <ion-icon name="log-in"></ion-icon>
                           <strong> login</strong>
@@ -71,7 +71,7 @@
 
 
 
-  <ion-split-pane disabled="{{!showRightMenu}}" when="xs">
+  <ion-split-pane disabled="{{!showRightMenu}}" when="md">
     
 
 
@@ -82,18 +82,12 @@
           </ion-toolbar>
         </ion-header>
         <ion-content>
-            <ion-list [hidden]="groups.length === 0" >
-                <ion-item><h3>Visible Groups</h3></ion-item>
-                <ion-item  *ngFor="let group of groups" >
-                    <ion-chip>
-                        <ion-label>{{group.content}}</ion-label>
-                          <ion-toggle [checked]="group.visible" (ionChange)="onGroupChange(group)" color="secondary"></ion-toggle>
-                    </ion-chip>
-                </ion-item>
-              </ion-list>
+              <app-group-select></app-group-select>
+              <app-event-search heading="Find Events"></app-event-search>
+              <app-edge-edit></app-edge-edit>
         </ion-content>
-</ion-menu>
-
+    </ion-menu>
+    
 
     <ion-router-outlet main></ion-router-outlet>
   </ion-split-pane>

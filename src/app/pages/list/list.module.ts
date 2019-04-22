@@ -6,7 +6,6 @@ import { RouterModule } from '@angular/router';
 
 import { ListPage } from './list.page';
 import { ComponentsModule } from '../../components/components.module';
-import { TimelineComponent } from '../../components/timeline/timeline.component';
 
 @NgModule({
   imports: [

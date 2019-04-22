@@ -36,7 +36,7 @@
 
         <div padding text-center>
             <ion-button type="submit" [disabled]="!itemForm.valid" expand="block">Save</ion-button>
-            <ion-label  color="danger">{{message}}</ion-label>
+
             <ion-button color="danger" (click)='remove()' [disabled]="!item._id" expand="block">Remove Project</ion-button>
         </div>
         

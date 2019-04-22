@@ -1,0 +1,31 @@
+<ion-item>
+    <ion-card>
+      <ion-card-header>
+        <ion-card-subtitle>{{heading}}</ion-card-subtitle>
+      </ion-card-header>
+      <ion-card-content>
+        <ion-item>
+          <ion-input  id="search"
+                      [(ngModel)]="searchTxt"
+                      debounce="500"
+                      learInput="true"
+                      type="text" 
+                      (ionChange)="onSearchChange()"
+                      placeholder="{{searchPlaceholder}}"></ion-input>
+          <ion-fab-button mini size="small" >
+            <ion-icon name="add"></ion-icon>
+          </ion-fab-button>
+        </ion-item>
+        <ion-list>
+          <ion-item (click)="searchItemSelected(item)" *ngFor="let item of items">
+            {{item.content}}
+            <br />
+            <ion-note>Group: {{item.group_name}}</ion-note>
+          </ion-item>
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+</ion-item>
+
+        
+  

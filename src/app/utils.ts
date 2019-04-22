@@ -2,7 +2,7 @@ export class Utils {
 }
 
 
-export function saveIntoArray(item: Object, ary: Array<any>, idKey: string = '_id'): Array<any> {
+export function saveIntoArray(item: Object, ary: Array<any> = [], idKey: string = '_id'): Array<any> {
   let i = getIndexById(item[idKey], ary, idKey);
   if (i === -1) {
     i = ary.length;

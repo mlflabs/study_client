@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { ProjectItem, GROUP_SERVICE } from '../models';
-import { BehaviorSubject } from 'rxjs';
+import { ProjectItem, GROUP_SERVICE, EVENT_SERVICE, LASTCHAR, EventItem } from '../models';
+import { BehaviorSubject, Subject } from 'rxjs';
 import { DataService } from './data.service';
 import { NavController } from '../../../node_modules/@ionic/angular';
 import { Router, NavigationEnd } from '../../../node_modules/@angular/router';
-import { filter } from 'rxjs/operators';
+import { filter, debounceTime } from 'rxjs/operators';
 import { saveIntoArray } from '../utils';
+import { projection } from '../../../node_modules/@angular/core/src/render3/instructions';
 
 
 @Injectable({
@@ -13,10 +14,27 @@ import { saveIntoArray } from '../utils';
 })
 export class StateService {
 
+  //graph
+  //graph search props
+  public eventItemAdd$ = new Subject();
+  public edgeSelectionChanged$ = new Subject();
+  public nodeSelectionChanged$ = new Subject();
+
+  private _searchItems = [];
+  private _edge = null;
+  private _node = null;
+  private _nodes: Array<EventItem> = [];
+  
+  public nodes$: BehaviorSubject<Array<EventItem>> = new BehaviorSubject(this._nodes);
+
+
+  public showEditEdge = false;
+
   //currentURl
   private _url = '';
   url$: BehaviorSubject<string> = new BehaviorSubject(this.url);
   prevUrl = '';
+  pageType$: BehaviorSubject<string> = new BehaviorSubject('');
 
   //projectp
   private _selectedProject = null;
@@ -26,11 +44,14 @@ export class StateService {
   private _groups = [];
   
   public groups$: BehaviorSubject<any> = new BehaviorSubject(this.groups);
-  private groupSubscription;
   //right menu
   private _showRightMenu = false;
   public showRightMenu$: BehaviorSubject<boolean> = new BehaviorSubject(this.showRightMenu);
   
+
+  //subscriptions
+  private groupSubscription;
+  private eventSubscription;
 
   constructor(public dataService: DataService,
               public router: Router,
@@ -50,9 +71,14 @@ export class StateService {
 
           console.log('We are in Projects');
           this.selectedProject = null;
+          this.pageType$.next('projects');
         
         } else if(e.urlAfterRedirects.endsWith('/timeline')){
-          
+          this.pageType$.next('timeline');
+          this.showRightMenu = true;
+        }
+        else {
+          this.pageType$.next('other'); // for all other
         }
 
         //run these every time
@@ -79,7 +105,10 @@ export class StateService {
         }
       });
 
-      
+    this.eventItemAdd$.subscribe(item =>{
+        this.updateNode(item as EventItem);
+    });
+
 
   }
 
@@ -90,7 +119,12 @@ export class StateService {
     console.log('Set Project::: ', value);
     //project change, need to make our 
     console.log('Old projectid: ', this.projectId);
-    if(this.groupSubscription) this.groupSubscription.unsubscribe();
+    if(this.groupSubscription && !this.groupSubscription.closed) 
+      this.groupSubscription.unsubscribe();
+    if(this.eventSubscription && !this.eventSubscription.closed) 
+      this.eventSubscription.unsubscribe();
+    console.log('PPPPPPPPPPPPPPPPPPPPPP');
+    console.log(this.groupSubscription, this.eventSubscription);
 
     this._selectedProject = value;
     this.selectedProject$.next(value);
@@ -107,9 +141,20 @@ export class StateService {
           }
           else {
             this.groups = saveIntoArray(group, this.groups);
-          }
-          
+          } 
       });
+
+      this.eventSubscription = this.dataService.subscribeProjectCollectionChanges(this.projectId, EVENT_SERVICE)
+        .subscribe(e => {
+          console.log('State Node Update:: ', e);
+          if(this.nodes.find(n=> n._id === e._id)){
+            console.log('---- Editing::: ', e);
+            if(e._deleted)
+              this.removeNode(e);
+            else
+              this.updateNode(e);
+          }
+        });
 
   }
 
@@ -165,4 +210,45 @@ export class StateService {
     this._groups = value;
     this.groups$.next(this.groups);
   }
+
+  public get edge() {
+    return this._edge;
+  }
+  public set edge(value) {
+    this._edge = value;
+    this.edgeSelectionChanged$.next(value);
+  }
+
+  public get node() {
+    return this._node;
+  }
+  public set node(value) {
+    this._node = value;
+    this.nodeSelectionChanged$.next(value);
+  }
+
+  public get searchItems() {
+    return this._searchItems;
+  }
+  public set searchItems(value) {
+    this._searchItems = value;
+  }
+
+
+  public get nodes(): Array<EventItem> {
+    return this._nodes;
+  }
+  public set nodes(value: Array<EventItem>) {
+    this._nodes = value;
+    this.nodes$.next(this._nodes);
+  }
+
+  public updateNode(node:EventItem){
+    this.nodes = saveIntoArray(node, this.nodes);
+  }
+
+  public removeNode(node:EventItem){
+    this.nodes = this.nodes.filter(n=> n._id !== node._id);
+  }
+
 }

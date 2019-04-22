@@ -92,8 +92,10 @@ export class DataService {
   subscribeProjectCollectionChanges(project: string, 
                                     type: string, 
                                     debounce:number=0): Observable<any> {
+    console.log('======================+++++++++++++++"');
+    console.log('Subscribing::: ', project, type, debounce);
     return this._changes.asObservable().pipe(
-      debounceTime(debounce),
+      //debounceTime(debounce),
       filter(doc => doc['_id'].startsWith(project+'|'+type+'|'))
     );
   }

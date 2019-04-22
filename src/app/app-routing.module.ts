@@ -38,7 +38,6 @@ const routes: Routes = [
     loadChildren: './pages/admin/orm/orm.module#OrmPageModule' },
   
   { path: 'groupsSelect', loadChildren: './pages/groups-select/groups-select.module#GroupsSelectPageModule' },
-  { path: 'upload', loadChildren: './pages/file/upload/upload.module#UploadPageModule' },
   
   
   { path: 'projects', 

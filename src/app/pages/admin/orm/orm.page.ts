@@ -17,6 +17,7 @@ export class OrmPage implements OnInit {
   
   public file;
   public items = [];
+  public files = [];
 
   public item = {
     name:'',
@@ -29,7 +30,7 @@ export class OrmPage implements OnInit {
 
   //selectedFile: ImageSnippet;
 
-  async processFile(imageInput: any, dataService: DataService) {
+  async processFile(imageInput: any) {
     this.file = imageInput.files[0];
     //const res = await this.dataService.save({'name': 'testing'}, FILE_SERVICE, null, file, file.type);
   }

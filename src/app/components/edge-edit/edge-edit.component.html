@@ -1,0 +1,41 @@
+
+<ion-item [hidden]="!state.edge">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>{{heading}}</ion-card-subtitle>
+          From: {{printFrom()}} -- To: {{printTo()}}
+      </ion-card-header>
+      
+      <ion-card-content>
+        <form #edgeForm="ngForm">
+          <ion-item>
+            <ion-input  name="label"
+                        [(ngModel)]="edge.label" 
+                        type="text" 
+                        placeholder="Label"></ion-input>
+            </ion-item>
+                                    
+            <ion-chip>
+              <ion-label>Dashes: </ion-label>
+                <ion-toggle 
+                  name="dashes"
+                  [(ngModel)]="edge.dashes"  
+                  color="secondary"></ion-toggle>
+            </ion-chip>
+            
+            <ion-item>
+              <ion-textarea 
+                name="note"
+                [(ngModel)]="edge.note" 
+                placeholder="Notes - Best to include reference"></ion-textarea>
+            </ion-item>
+              <div padding text-center>
+                <ion-button (click)="save()" size="large" [disabled]="!edgeForm.valid" expand="block">Save</ion-button>
+                <ion-button (click)="remove()" size="large" color="danger" expand="block">Remove</ion-button>
+            </div>
+        </form>
+      </ion-card-content>
+  </ion-card>
+</ion-item>
+
+              

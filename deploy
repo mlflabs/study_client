@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 ionic build --release --prod
-cp -r ./www/* ./build
-cd build
+cp -r ./www/* ../../mlflabs/study
+cd ../../mlflabs
 git add .
-git commit -m "update"
+git commit -m "updated study client"
 git push origin

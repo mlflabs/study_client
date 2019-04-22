@@ -15,44 +15,14 @@ import { saveIntoArray } from './utils';
 export class AppComponent {
 
   public appPages = [];
-
-
-  public _top = [
-    {
-      title: 'Home',
-      url: '/projects',
-      icon: 'home',
-      auth : true
-    },
-    {
-      title: 'Timeline',
-      url: '/list',
-      icon: 'list',
-      auth : true
-    },
-    {
-      title: 'Graph',
-      url: '/graph',
-      icon: 'git-network',
-      auth : true
-    },
-    {
-      title: 'Groups',
-      url: '/groups',
-      icon: 'logo-buffer',
-      auth : true
-    },
-    {
-      title: 'Images',
-      url: '/images',
-      icon: 'images',
-      auth : true
-    }
-  ];
-
   public groups = [];
-
   public showRightMenu= false;
+
+    //graph search props
+    isGuest = true;
+    search_term = '';
+    edge;
+
 
   constructor(
     private platform: Platform,
@@ -76,14 +46,18 @@ export class AppComponent {
 
       this.auth.isAuthenticated$.subscribe(state => {
         this.refresh();
-
+        console.log('********************************************************************');
+        console.log('Checking user State, state:: ', state);
         if (state) {
           //this.appPages = this._appPages.filter(p => p.auth === true);
           this.router.navigate(['projects']);
+
+          this.isGuest = false;
         } else {
           // add login page
           //this.appPages = this._appPages.filter(p => p.auth === false);
           this.router.navigate(['login']);
+          this.isGuest = true;
         }
       });
 
@@ -94,6 +68,10 @@ export class AppComponent {
 
       this.state.groups$.subscribe(groups =>{
         this.groups = groups;
+      });
+
+      this.state.showRightMenu$.subscribe(show =>{
+        this.showRightMenu = show;
       });
 
 
@@ -116,13 +94,14 @@ export class AppComponent {
 
   generateMenu(){
     const menu = [];
-
-    menu.push({
-      title: 'Home',
-      url: '/projects',
-      icon: 'home',
-      auth : true
-    });
+    if(!this.isGuest) {
+      menu.push({
+        title: 'Home',
+        url: '/projects',
+        icon: 'home',
+        auth : true
+      });
+    }
     console.log('Menu Checking projectid: ', this.state.projectId);
     if(this.state.projectId){
       menu.push({
@@ -189,12 +168,6 @@ export class AppComponent {
     this.navCtr.navigateForward('/register');
   }
 
-  onGroupChange(group){
-    console.log('OnGroupChange:: ', group);
-    this.state.groups = saveIntoArray(Object.assign(
-                  group, 
-                  { visible: (group.visible === false || group.visible === null) },
-                  { showNested: true }),
-                  this.state.groups);
-  }
+
+
 }

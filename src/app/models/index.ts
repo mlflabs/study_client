@@ -8,6 +8,8 @@ export const SETTINGS_SERVICE = 's';
 export const PROJECT_SERVICE = 'p';
 export const PROJECT_INDEX_SERVICE = 'pi';
 
+export const LASTCHAR = String.fromCharCode(65535);
+
 export class Doc {
   public _id?: string;
   public _rev?: string;
@@ -68,8 +70,8 @@ export class EventItem extends Doc {
   className?: string;
   icon?: string;
 
-  to:[Edge];
-  from:[Edge];
+  to:Array<EdgeItem>;
+  from:Array<EdgeItem>;
 
   viewDayLabel?:string; 
   viewWeekLabel?: string;
@@ -136,7 +138,7 @@ export class Task extends Doc {
   docType?: string;
 }
 
-export class Edge {
+export class EdgeItem {
   id?: string;
   to?: string;
   from?: string;
@@ -149,7 +151,7 @@ export class Edge {
 export function newEdge(props){
   //lets take props and add some defaults
   props.id = generateCollectionId('edge');
-  props.arrow = 'to';
+  props.arrows = 'to';
   props.dashes = false;
 
   return {...{},...props};

@@ -60,6 +60,10 @@ export class ProjectsPage implements OnInit, OnDestroy {
     const res = await modal.present();
   }
 
+  async edit(item){
+    //TODO
+  }
+
   removeItem(doc){
     //TODO: we need to remove all the associated records with this.
     this.dataService.remove(doc._id);

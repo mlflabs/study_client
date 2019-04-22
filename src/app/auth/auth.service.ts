@@ -201,6 +201,7 @@ export class AuthService {
       {
           strategy: 'local',
           id: name,
+          app: environment.app_id,
           password: password
       }, {}).toPromise();
       const user = await this.saveCredentials(res);
